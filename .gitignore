@@ -1,0 +1,7 @@
+# OS & Temp files
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+temp_*.html
+find_refined.cjs

@@ -1,0 +1,326 @@
+
+
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name = "viewport" content = "initial-scale = 1.0, user-scalable = no,  width=device-width">
+    <title>SUNAT - Menú SOL</title>
+    <link href="/a/js/libs/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <!--[if lt IE 9]>
+      <script src="/a/js/libs/bootstrap/3.3.2/plugins/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="/a/js/libs/bootstrap/3.3.2/plugins/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <style type="text/css">
+        html {
+            overflow: -moz-scrollbars-vertical; 
+            overflow-y: scroll;
+        }
+        /*Barra navegaci�n*/         
+        #divCabecera{
+            background-color: #fff; 
+        } 
+        .navLogo{
+            height: auto;
+            padding: 10px 15px;
+        }
+        /*Cuerpo*/
+        /*Footer*/
+        #footerLinks{
+            background-color: #f6f6f4;
+            padding: 30px 0;
+        }
+        #footerPrincipal{
+            background-color: #0063AE;
+            padding: 20px 0 15px 0px;
+        }
+        /*Estilos*/
+        .sinRadio{
+            border-radius: 0px !important;
+        }
+        .sinBorde{
+            border: 0px !important;
+            box-shadow: none;
+        }
+        .colBlanco{ 
+            color:    #fff !important;
+        }
+        .colAzul{ 
+            color:    #0062AE !important;/*oficial*/
+        }
+        .colAzul2{
+            color: #004586 !important; /*mas oscuro*/
+        }
+        .colRojo { 
+            color:    #AB1440 !important;/*oficial*/
+        }
+        .colCeleste{
+            color: #00A6CC !important;/*mas oscuro*/
+        }
+        .colCeleste2{
+            color: #79E7FF !important;
+        }
+        .backAzul1{
+            background-color: #0063AE;
+        }
+        .backPlomo1{
+            background-color: #F6F6F4;
+        }
+        .backCeleste1{
+            background-color: #00A6CC;
+        }
+        @media (max-width: 768px) { 
+            #aHome{
+                height: 35px;
+            }
+            .text-centro{
+                text-align: center !important;
+                float: none !important;
+            }
+        }
+        @media (min-width: 768px) {   
+        }
+        @media (min-width: 992px) {
+        }
+        @media (min-width: 1200px) {	    
+        }
+    </style>
+  </head>
+  <body>
+      <div  id="divCabecera" class="navbar navbar-default" role="navigation"> 
+          <!--Barra superior-->
+          <div class="navbar-header">
+              <a class="navbar-brand navLogo" href="#">                                
+                  <img id="aHome" src="/a/imagenes/logo.png"/>
+              </a>
+              <p class="navbar-text pull-right hidden-sm hidden-md hidden-lg colRojo">
+                    <span id="spanFecha">27/09/2026</span>
+                </p>
+          </div><!--/.navbar-header -->   
+          <div class="container-fluid">
+              <div class="navbar-collapse collapse">
+                  <p class="navbar-text navbar-right colRojo">
+                      <span id="spanFecha">27/09/2026</span>
+                  </p>
+              </div><!--/.nav-collapse -->
+          </div>
+          <!--Barra azul-->
+          <div class="navbar-collapse collapse hidden-xs colBlanco backAzul1">
+              <p class="navbar-text colBlanco navbar-right">
+                &nbsp;
+             </p>
+          </div>
+          
+      </div><!--/.navbar -->
+
+      <div class="container">
+
+          <!--**********************Pagina 1**********************-->
+          <div class="row">
+              <div class="col-md-6 col-md-offset-3">
+                  <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">SUNAT Operaciones en L&iacute;nea</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="col-sm-12">
+                                <div class="text-center">
+                                    <div class="alert alert-danger text-left" role="alert">
+                                        <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>&nbsp;
+                                        Error en la invocaci&oacute;n
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="alert alert-info text-left" role="alert">
+                                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>&nbsp; 
+                                        Ingrese nuevamente
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <button id="bntVolver" class="btn btn-sm btn-danger" type="button">Volver</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!--fin panel-->
+              </div><!--fin col-->
+          </div><!--fin row-->
+
+
+
+          
+
+          <!--**********************FIN CONTENEDOR**********************-->
+      </div><!--fin container-->
+
+
+
+
+
+      <div id="footerLinks" class="text-center">
+          <div class="container">
+              <div class="row">
+                <div id ='lblFooter' class="col-md-6 col-md-offset-3" style="border: 0px dashed #0062AE; border-radius: 10px; padding-left: 20px; " >
+					
+					<p class="text-left">Mayor informaci&oacute;n al 0801-12100 (desde teléfonos fijos) &oacute; al 315-0730
+							(desde celulares)<br><b>Consultas Tributarias e Inform&aacute;ticas</b>: Lunes a Viernes de 8:30 a. m a 6:00 p. m.<br><b>Consultas Aduaneras</b>: Lunes a Viernes de 8:30 a. m a 4:30 p. m.
+					</p>				
+				 </div>
+              </div><!--/row-->
+              <div class="row">
+                  <div class="col-md-12">
+                      <p>
+                          <small>
+                              Compatible con:&nbsp;&nbsp;&nbsp;&nbsp;
+
+                              <img src="/a/imagenes/nav-chrome.jpg"/> Google Chrome 10+&nbsp;&nbsp;&nbsp;&nbsp;
+                              <img src="/a/imagenes/nav-firefox.jpg"/> Firefox 10+&nbsp;&nbsp;&nbsp;&nbsp;
+                              <img src="/a/imagenes/nav-ie.jpg"/> Internet Explorer 8+&nbsp;&nbsp;&nbsp;&nbsp;
+                              <!-- <img src="/a/imagenes/nav-safari.jpg"/> Safari 5+&nbsp;&nbsp;&nbsp;&nbsp;
+                               <img src="/a/imagenes/nav-opera.jpg"/> Opera 12+&nbsp;&nbsp;&nbsp;&nbsp;-->
+                          </small>
+                      </p>
+
+
+                  </div>
+              </div><!--/row-->
+          </div><!--/container-->
+      </div>
+
+
+
+      <footer id="footerPrincipal" class="colBlanco">
+          <div class="container">
+
+
+
+              <div class="row">
+                  <div class="col-md-6 pull-left text-left text-centro">
+                      <p>
+                          <small>
+                              1997 - 2016 SUNAT &copy; Todos los Derechos Reservados
+
+                          </small>
+                      </p>
+                  </div>
+                  <div class="col-md-6 pull-right text-right text-centro">
+                      <p>
+                          <small>
+                              <a href="http://www.sunat.gob.pe/legislacion/superin/2003/147.htm" target="_blank" class="colBlanco">Política de privacidad</a>&nbsp;&nbsp;&nbsp;&nbsp;
+                              <a href="http://www.sunat.gob.pe/menu/ayuda/aprendeSOL.htm" target="_blank"  class="colBlanco">Aprende sobre SOL</a>
+
+                          </small>
+                      </p>
+                  </div>
+              </div>
+          </div>
+      </footer>
+      <form name="formauth" action="AutenticaMenuInternet.htm" method="POST">
+          <input type="hidden" name="username" id="username" />
+          <input type="hidden" name="password" id="password" />
+          <input type="hidden" name="captcha" id="captcha" />
+          <input type="hidden" name="params" value="">
+      </form>
+      <script src="/a/js/libs/jquery/1.11.2/jquery.min.js"></script>
+      <script src="/a/js/libs/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+
+      <script>
+        var esAndroid=false;
+        var esIos=false;
+        var ag=navigator.userAgent.toLowerCase();
+        if (ag.indexOf("android") >= 0) {
+                esAndroid = true;
+        }
+        if (ag.indexOf("iphone") >= 0 || ag.indexOf("ipad") >= 0) {
+                esIos = true;
+        }
+        $(document).ready(function() {	
+            iniciaVariables();
+            inciaBotones();
+
+            frameIniciado();
+            
+            try{
+               parent.postMessage("salir", "*");
+            } catch (err) {                    
+            }
+        });
+        /*window.onbeforeunload = function() {
+            //Se ejecuta cuando se presiona un boton back y reload
+            clean();
+            return undefined;
+            //return "Cerrando sesi�n";
+        };      
+        function clean() {
+            var formData = {action:"invalidate"};
+            request2 = $.ajax({
+                url: 'AutenticaMenuInternet.htm',
+                type: 'POST',
+                data: formData,
+                cache: false,
+                timeout: 25000,
+                dataType: 'json',
+                async:false,
+                complete: function () {
+                },
+                success: function (response) {
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    //alert('[2] Ha ocurrido el siguiente error: '+ thrownError);
+                }
+            });
+        }*/
+        function iniciaVariables(){
+           bntVolver=$("#bntVolver");
+        }
+        function inciaBotones(){
+           bntVolver.bind('click',function(event){
+                if(esIos){
+                    history.go(-1);
+                }else{
+                    parent?parent.history.back():history.back();
+                }
+               
+               
+               //history.go(1)
+               //history.back(-1) 1
+               //window.history.back();
+               //history.go(-1)
+
+               /*
+                var nav = window.navigator;
+                if( this.phonegapNavigationEnabled &&
+                    nav &&
+                    nav.app &&
+                    nav.app.backHistory ){
+                    nav.app.backHistory();
+                } else {
+                    window.history.back();
+                }
+                */
+                event.preventDefault();
+                event.stopPropagation();
+                return false;
+            });
+        }
+        function frameIniciado(){
+            /*try{
+                 parent.postMessage("frameIniciado",'*');
+            }catch(ex){
+                 try{
+                    window.parent.postMessage("frameIniciado",'*');
+                 }catch(ex){
+                 }
+            }*/
+       }
+
+        var bntVolver=null;
+        var request2=null;
+      </script>
+
+  </body>
+</html>
+
+	
+	

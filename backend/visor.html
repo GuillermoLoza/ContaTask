@@ -1,0 +1,2566 @@
+<!DOCTYPE HTML>
+<html lang="es">
+<head>
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="meta-token" content="20000000001"/>
+	<title>.:: SUNAT ::.</title>  
+	<link href="/a/js/libs/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet">
+	<link href="/a/js/libs/bootstrap/3.3.2/plugins/font-awesome/4.4.0/css/font-awesome.min.css" rel="stylesheet">
+	<link href="/a/js/apps/recurso2/documentacion/Scripts/bootstrap-jquery-ui/css/custom-theme/jquery-ui-dragdrog.css" rel="stylesheet" type="text/css" />
+	<link href="/a/js/apps/recurso2/documentacion/Content/css/style2.css" rel="stylesheet" type="text/css" />
+	<link href="/a/js/apps/declaracion_pago/pagoValores/css/valores.css" rel="stylesheet" type="text/css" />
+    <!--[if lt IE 9]>		
+          <script src="/a/js/libs/bootstrap/3.3.2/plugins/respond/1.4.2/respond.min.js"></script>
+          <script src="/a/js/libs/bootstrap/3.3.2/plugins/html5shiv/3.7.2/html5shiv.min.js"></script>
+	<![endif]-->
+
+	<script>
+		function initBody(){
+			if(/iPhone|iPad|iPod/i.test(navigator.userAgent) ) {
+				document.body.style.visibility ="hidden";
+			}
+		}
+		
+		if (window.addEventListener) {
+			window.addEventListener("message", receiveMessage, false);
+		} else if (window.attachEvent) {
+			window.attachEvent('onmessage', receiveMessage);
+		}
+		//Funcion creada para recibir el llamado desde la notificacion al buzon
+		function receiveMessage(event){   
+			if(event.data.indexOf("MiCadena-")==0){				 
+			   var cadena=event.data.substring(8, event.data.length);				   
+			   var parametros = cadena.split("-");				   
+			   var parametro1=parametros[1];//ruc
+			   var parametro2=parametros[2];//valor				   
+			   //PAS20181U210200037:Inicio
+			   //mostrarModalPagoValores(parametro1,parametro2);
+			   var _VAR_UBEAN = localStorage.getItem("SUNAT.VAR_UBEAN");
+			   var _idFormPagoValores = "12.10.1.1.8";
+			   var _params = { "idFormulario": _idFormPagoValores, "numDoc" : parametros[2], "uBean" : _VAR_UBEAN };
+			   plataformaService.fShowPlataforma(_params);
+			 	//PAS20181U210200037:Fin
+		   }
+		}
+	</script>
+</head>
+<body draggable="false">
+	<script>
+		initBody();
+	</script>
+	<div class="hidden-print">	
+		<form action="bajarArchivo" method="post">
+			<input type="hidden" name="cod_arch" > 
+			<input type="hidden" name="anexo">
+			<input type="hidden" name="token" value="20000000001">
+			<input id="idSistema" type="hidden" name="sistema">
+		</form>
+		<input type="hidden" id="idTipMenj" value="2"> 
+		<input type="hidden" id="idCodCarpeta" value="0">
+		<input type="hidden" id="idCodEtiqueta" value="0"> 
+		<input type="hidden" id="idTipoOrden" value="NADA"> 
+		<input type="hidden" id="idBuscarAsunto" value="false"> 
+	</div>
+    <div class="container-fluid row-offcanvas row-offcanvas-left active" id="contenedorPadre">
+		<div class="row" id="idDivRowTodo">
+			<div id="divColumnaSidebar" class="col-xs-12 col-sm-6 sidebar-offcanvas">
+				<div class="row">
+					<div class="container-fluid row-offcanvas-inside row-offcanvas-right">
+						<div class="row">
+							<div class="col-xs-12 col-sm-6 no-border-radius" id="rowCarpetas">
+								<div style="height: 50px; margin-bottom: 0px">
+									<span class="navbar-brand">Buz&oacute;n</span>
+					          		
+					          		<div class="dropdown pull-right navbar-right">
+					          			<button id="dpAlertas" class="btn btn-sm" style="font-size: 18px; margin-top: 5px;" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						          			<i class="fa fa-bell-o"></i>
+						          			<span class="badge"></span>
+						          		</button>
+						          		<ul id="listAlertas" style="width: 220px;" class="dropdown-menu text-muted" aria-labelledby="dpAlertas"></ul>
+						          	</div>
+					          		<button type="button" class="btn btn-sm pull-right" style="font-size: 18px; margin-top: 5px;" id="btnActualizar"><i class="fa fa-repeat fa-rotate-180"></i></button>
+								</div>
+								<div class="row row-scroll">
+									<div class="panel panel-default no-border-radius" style="border-with: 0; margin-bottom: 0">
+										<div class="list-group no-border-radius">
+											<a id="aListNoti" name="Buz&oacute;n Notificaciones" href="#" onclick="fListarNotiMen(2,'00','',1,'list','','NADA',true); mostrarMover(true);" class="list-group-item link-carpeta no-border-radius">
+												<i class="fa fa-envelope-o"></i>Buz&oacute;n Notificaciones <span class="num-item count-noti"></span>
+											</a>
+											<a id="aListMen" name="Buz&oacute;n Mensajes" href="#" onclick="fListarNotiMen(1,'00','',1,'list','','NADA',true); mostrarMover(true);"  class="list-group-item link-carpeta no-border-radius">
+												<i class="fa fa-envelope-o"></i>Buz&oacute;n Mensajes <span class="num-item count-mensj"></span>
+											</a>
+						          		</div>
+				          				<div class="panel-heading" role="tab"> 
+				          					<h4 class="panel-title"> 
+				          						<a role="button" data-toggle="collapse" href="#divMisCarpetas"> 
+				          							Mis Carpetas  <span style="margin-top: 10px" class="pull-right caret"></span>
+				          						</a> 
+				          					</h4> 
+				          				</div> 
+				          				<div id="divMisCarpetas" class="panel-collapse collapse in no-border-radius" role="tabpanel"> 
+				          					<div class="list-group no-border-radius"></div> 
+				          				</div> 
+				          				<div class="panel-heading" role="tab"> 
+				          					<h4 class="panel-title"> 
+				          						<a role="button" data-toggle="collapse" href="#divMisEtiquetas"> 
+				          							Mis Etiquetas <span style="margin-top: 10px" class="pull-right caret"></span> 
+				          						</a> 
+				          					</h4> 
+				          				</div> 
+				          				<div id="divMisEtiquetas" class="panel-collapse collapse in no-border-radius" role="tabpanel" > 
+				          					<div class="list-group no-border-radius"> 
+				          					</div> 
+				          				</div> 
+						          	</div>
+					          	</div>
+							</div>
+							<div class="col-xs-12 col-sm-6 sidebar-offcanvas">
+								<div style="height: 50px; margin-bottom: 0px">
+									<button type="button" style="margin-top: 8px;" id="verCarpetas" class="btn fa fa-chevron-left pull-left visible-xs"></button>
+					       			<div class="dropdown pull-right navbar-right visible-xs">
+					          			<button id="dpABusqueda" class="btn btn-lg" style="font-size: 18px" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						          			<i class="fa fa-search"></i>
+						          			<span class="badge"></span>
+						          		</button>
+						          		<ul class="dropdown-menu text-muted" style="width: 270px; padding-left: 10px; padding-right: 10px;" aria-labelledby="dpABusqueda">
+						          			<li>
+						          				<form  id="frmBusquedaMovil" autocomplete="off">
+						          					<div class="input-group">
+														<input id="inputFiltroMovil" style="line-height:32px;" type="text" class="form-control" placeholder="Buscar por asunto">
+												      	<span class="input-group-btn">
+												        <button class="btn btn-default" type="button" onclick="buscarAsuntoMovil();">
+												        	<i class="glyphicon glyphicon-search"></i>
+												        </button>
+												      </span>
+												    </div>
+						          				</form>
+						          			</li>
+						          		</ul>
+						          	</div>
+									<div class="dropdown pull-left navbar-left hidden-xs hidden-sm" style="margin-right: 8px;">
+					          			<button id="dpOrder" class="btn btn-sm" style="font-size: 18px;" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						          			<i style="font-size: 14px;" class="fa fa-square"></i>
+						          			<span class="caret"></span>
+						          		</button>
+						          		<ul id="listOrder" class="dropdown-menu text-muted" aria-labelledby="dpOrder">
+											<li><a href="javascript:void(0)" onclick="seleccionarChecks('TODOS')">Todos</a></li>
+											<li><a href="javascript:void(0)" onclick="seleccionarChecks('NADA')">Nada</a></li>
+											<li><a href="javascript:void(0)" onclick="seleccionarChecks('LEIDOS')">Leidos</a></li>
+											<li><a href="javascript:void(0)" onclick="seleccionarChecks('NO_LEIDOS')">No leidos</a></li>
+											<li><a href="javascript:void(0)" onclick="seleccionarChecks('DESTACADOS')">Destacados</a></li>
+											<li><a href="javascript:void(0)" onclick="seleccionarChecks('SIN_DESTACAR')">Sin destacar</a></li>
+											<li><a href="javascript:void(0)" onclick="seleccionarChecks('MUY_URGENTES')">Muy urgentes</a></li>
+											<li><a href="javascript:void(0)" onclick="seleccionarChecks('NO_MUY_URGENTES')">No muy urgentes</a></li>
+						          		</ul>
+						          	</div>
+					          		<div id="tituloCarpeta" class="visible-xs" style="padding: 12px 0 0 0; text-align:center;  font-size: 14px;" ></div>
+					        		<form id="frmBusqueda" class="hidden-xs" style="margin-top: 8px;" autocomplete="off">
+										<div class="input-group">
+											<input id="inputFiltro" style="padding-top: 5px; padding-bottom: 5px;" type="text" class="form-control" placeholder="Buscar por asunto">
+									      	<span class="input-group-btn">
+									        <button class="btn btn-default" type="button" onclick="buscarAsunto();">
+									        	<i class="glyphicon glyphicon-search"></i>
+									        </button>
+									      </span>
+									    </div>
+									</form>
+								</div>
+								<div class="row row-scroll">
+									<div class="panel">
+										<ul class="list-group" id="listaMensajes"> 
+											
+										</ul>
+										<div id="pagi" style="display: none;"></div>
+									</div>
+					          	</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xs-12 col-sm-6">
+				<div style="height: 50px; margin-bottom: 0px" id="pager">
+				    <button type="button" id="verMensajes" style="margin: 8px 8px 0 0;" class="btn fa fa-chevron-left pull-left visible-xs"></button>
+	       			<div class="dropdown pull-left">
+	          			<button id="dvMover" class="btn btn-sm" style="font-size: 18px; margin-top: 5px;" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		          			<i class="fa fa-folder-o"></i>
+		          			<span class="caret"></span>
+		          		</button>
+		          		<ul id="listMoverCarpetas" class="dropdown-menu text-muted" aria-labelledby="dvMover"></ul>
+		          	</div>
+				    <div id="eliminarMensaje" class="pull-left hidden-xs"></div>
+	       			<div class="pull-right" style="margin-top:8px;">
+	       				<div class="pull-left" style="margin: 8px 10px 0 0; font-size: 12px;"><span class="cant-correo"></span></div>
+		       			<button type="button" class="btn fa fa-chevron-left lastCorreo"></button>
+		       			<button type="button" class="btn fa fa-chevron-right nextCorreo"></button>
+		       		</div>
+	       		</div>
+				<div class="row  row-scroll">
+					<div class="panel panel-default" id="detallePanel">
+
+						<div class="panel-body">
+							<input type="hidden" id="idCodigoDetalle" />
+							<h4 id="idTitleDetalle"></h4>
+							<h5 id="idFechaDetalle"></h5>
+							<div class="clearfix" id="detalleOpciones">
+								<div id="tagMensaje" class="pull-left"></div>
+								<button onclick="fImprimir()" class="fa fa-print pull-right social-iconos hidden-xs"></button>
+								<a href="#"  class="fa fa-star pull-right social-iconos" id="idFavoritoDetalle" onclick="actualizarFavorito(this, null);"></a>
+								<a href="#"  class="fa fa-flag pull-right social-iconos" id="idImportanteDetalle" onclick="actualizarUrgente(this, null);"></a>
+							</div>
+							<div class="line-divider"></div>
+							<div class="clearfix" id="divArchivosAdjuntos">
+								<div class="pull-left"><i style="font-size: 18px" class="fa fa-paperclip pull-right"></i></div>
+								<ul style="padding-left: 28px;" class="list-unstyled" id="listArchivosAdjuntos"></ul>
+							</div>
+							<div class="line-divider"></div>
+							<div class="contenedor-correo"></div>
+							<!-- PAS20181U210200037:CSP - Inicio -->
+							<div id="line-btn-plataforma" class="line-divider"></div>
+							<span id="btn-hide-plataforma" 
+								class="btn btn-danger btn-block col-sm-3 hidden"
+								style="background-color: #AB1440 !important;" 
+								onclick="plataformaService.onClick_BtnHide()">
+								<i style="font-size: 18px" class="fa fa-close"></i>&nbsp;Cerrar Pasarela de pagos
+							</span>
+							<div class="line-divider"></div>
+							<div class="contenedor-plataforma"></div>
+							<!-- PAS20181U210200037:CSP - Fin -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	
+	
+	<!-- Modales -->
+	<!-- Edit Carpeta -->
+	<div class="modal hidden-print" id="editCarpeta" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-sm">
+	    	<div class="modal-content">
+	      		<div class="modal-header">
+	        		<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+	        		<h4 class="modal-title" id="myModalLabel"><i></i>Cambiar nombre de la carpeta</h4>
+	      		</div>
+	      		<div class="modal-body">
+	        		<div class="row">
+	        			<div class="col-xs-12 col-sm-12">
+	        				<div class="label-action">&iquest;Desea cambiar el nombre de la carpeta <span class="nombre_carpeta">carpeta</span>?</div>
+	        				<div class="form-group">        			
+		        				<div class="input-destino">
+		        					<input type="hidden" id="edit_cod_carpeta">
+		        					<input type="text" id="edit_nom_carpeta" onkeypress="validCaracter(event,/[\u00D1\u00F1\u00C1\u00C9\u00CD\u00D3\u00DA\u00E1\u00E9\u00ED\u00F3\u00FA a-zA-Z0-9]/);" class="form-control" maxlength="35">
+		        				</div>
+	        				</div>
+	        			</div>	        	
+	        		</div>
+	      		</div>
+	      		<div class="modal-footer">      	
+	      			<button type="button" class="btn btn-primary" onClick="modificarCarpeta();">Guardar</button>
+	      			<button type="button" class="btn btn-default" onClick="cancelarModificarCarpeta();">Cancelar</button>
+	      		</div>
+	    	</div>
+	  	</div>
+	</div>
+	<!-- Cierra Edit Carpeta -->
+	<!-- Delete Carpeta -->
+	<div class="modal hidden-print" id="deleteCarpeta" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+	    	<div class="modal-content">
+	      		<div class="modal-header">
+	        		<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+	        		<h4 class="modal-title" id="myModalLabel"><i></i>Eliminar carpeta</h4>
+	      		</div>
+	      		<div class="modal-body">
+	        		<div class="row">
+	        			<div class="col-xs-12 col-sm-12">
+	        				<div class="label-action">&iquest;Quiere eliminar la Carpeta <span class="nombre_carpeta">carpeta??</span>?</div>
+        					<div class="box-msj-action">
+        						<input type="hidden" id="delete_cod_carpeta">
+        						<i class="ico-msj"></i>
+        						Todos los mensajes almacenados volveran al buz&oacute;n de Notificaciones y/o Mensajes
+        					</div>
+        				</div>	        	
+        			</div>
+      			</div>
+      			<div class="modal-footer">      	
+      				<button type="button" class="btn btn-primary" onClick="eliminarCarpeta();">Eliminar</button>
+      				<button type="button" class="btn btn-default" onClick="cancelarEliminarCarpeta();">Cancelar</button>
+      			</div>
+    		</div>
+  		</div>
+	</div>
+	<!-- Cierra Delete Carpeta -->
+	
+	<!-- Add Carpeta -->
+	<div class="modal hidden-print" id="addCarpeta" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+	        <h4 class="modal-title" id="myModalLabel"><i></i>Crear nueva carpeta</h4>
+	      </div>
+	      <div class="modal-body">
+	        <div class="row">
+	           <label class="col-xs-12">Nombre de Carpeta:</label>	      	
+	        </div>
+	        <div class="row">
+			 <div class="col-xs-12">
+					<div class="input-destino">
+		        			<input id="txtNombreCarpeta" type="text" class="form-control" onkeypress="validCaracter(event,/[\u00D1\u00F1\u00C1\u00C9\u00CD\u00D3\u00DA\u00E1\u00E9\u00ED\u00F3\u00FA a-zA-Z0-9]/);"  maxlength="35">
+		        	</div>
+				</div>        	
+	        </div>
+	      </div>
+	      <div class="modal-footer ">      	
+	      	<button type="button" class="btn btn-primary" onClick="crearCarpeta();">Guardar</button>
+	      	<button type="button" class="btn btn-default" onClick="cancelarCrearCarpeta();">Cancelar</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+	<!-- Cierra Add Carpeta -->
+	
+	<!-- Cierra Modales -->
+	<div class="modal" id="idModalMensaje" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static">
+	  <div class="modal-dialog modal-sm">
+	    <div class="modal-content">
+	      <div class="modal-header modal-header-cust">
+	      	<button type="button" class="close" data-dismiss="modal">&times;</button>
+	        <h4 class="modal-title" id="myModalLabel">
+	            <span id="idTituloDialog"></span>
+	        </h4>
+	      </div>
+	      <div class="modal-body">
+	         <table id="idModelTbl">
+	              <tr><td style="width: 60px;"></td>
+	               <td></td>
+	               </tr>
+	         </table>
+	      </div>
+	      <div class="modal-footer">
+	           <div id="idButtonFooter"></div>
+	        </div>
+	    </div>
+	  </div>
+	</div>
+	
+	<!-- DEC- Inicio Modal Pago de Valores-->
+	<!-- Llamamos al modal de pago de valores -->
+	<div class="modal hidden-print" id="myModalPV" tabindex="-1"
+   role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+   <div class="modal-dialog modal-lg" id="ventana_principal">
+      <div class="modal-content" id="ventana_contenido">
+         <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+            </button>
+            <h4 class="modal-title" id="myModalLabel">
+               <i></i><strong>Declaraci&oacute;n y Pago</strong>: Boleta de Pago
+               - Pago de Valores
+               <input id="pant">
+            </h4>
+         </div>
+         <input type="hidden" id="dataValor"> <input type="hidden"
+            id="codDepValor"> <input type="hidden" id="numRucValor">
+         <input type="hidden" id="numCodValor">
+         <div class="modal-body">
+            <div class="navbar-fixed-top"
+               style="padding: 5px 10px; background-color: white; position: static; z-index:">
+               <ul class="Bread-Crumb" id="Bread-Crumb-Pasos">
+                  <li><a id="btnPaso01" class="btnPaso current" href="#"
+                     style="cursor: default"><span class="visible-xs"><small>1.
+                     Monto</small></span><span class="hidden-xs">1. Monto</span></a>
+                  </li>
+                  <li><a id="btnPaso02" class="btnPaso" href="#"
+                     style="cursor: default"><span class="visible-xs"><small>2.
+                     Pago</small></span><span class="hidden-xs">2. Pago</span></a>
+                  </li>
+                  <li><a id="btnPaso03" class="btnPaso" href="#"
+                     style="cursor: default"><span class="visible-xs"><small>3.
+                     Constancia</small></span><span class="hidden-xs">3. Constancia </span></a>
+                  </li>
+               </ul>
+            </div>
+            <form id="form1" name="form1">
+               <input name="salDocVal_num" id="salDocVal_num" value="0"
+                  type="hidden">
+               <div class="panel panel-primary" id="panel1">
+                  <!--div class="panel-heading">
+                     <h4 class="panel-title">
+                       I. Datos del Valor
+                     </h4>
+                     </div-->
+                     
+                  <div class="list-group">
+                     <div class="list-group-item">
+                        <div class="row">
+                           <div class="col-md-3">
+                              <h4 class="list-group-item-heading">Nro Documento:</h4>
+                           </div>
+                           <div class="col-md-3">
+                              <p id="nroDocVal" class="list-group-item-text"></p>
+                           </div>
+                           <div class="col-md-3">
+                              <h4 class="list-group-item-heading">Periodo:</h4>
+                           </div>
+                           <div class="col-md-3">
+                              <p id="perVal" class="list-group-item-text"></p>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="list-group-item">
+                        <div class="row">
+                           <div class="col-md-3">
+                              <h4 class="list-group-item-heading">Tributo:</h4>
+                           </div>
+                           <div class="col-md-3">
+                              <p id="codTribval" class="list-group-item-text"></p>
+                           </div>
+                           <div class="col-md-3">
+                              <h4 class="list-group-item-heading">Tipo Documento:</h4>
+                           </div>
+                           <div class="col-md-3">
+                              <p id="tipDocVal" class="list-group-item-text"></p>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="list-group-item">
+                        <div class="row">
+                           <div class="col-md-3">
+                              <h4 class="list-group-item-heading">Fecha Emisi&oacute;n:</h4>
+                           </div>
+                           <div class="col-md-3">
+                              <p id="fecEmiVal" class="list-group-item-text"></p>
+                           </div>
+                           <div class="col-md-3">
+                              <h4 class="list-group-item-heading">Fecha
+                                 Notificaci&oacute;n:
+                              </h4>
+                           </div>
+                           <div class="col-md-3">
+                              <p id="fecNotiVal" class="list-group-item-text"></p>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="list-group-item">
+                        <div class="row">
+                           <div class="col-md-3">
+                              <h4 class="list-group-item-heading">Nro Exp. Coactivo:</h4>
+                           </div>
+                           <div class="col-md-3">
+                              <p id="nroExpCoaVal" class="list-group-item-text"></p>
+                           </div>
+                           <div class="col-md-3">
+                              <h4 class="list-group-item-heading">Denominaci&oacute;n
+                                 Tributo:
+                              </h4>
+                           </div>
+                           <div class="col-md-3">
+                              <p id="denoTribVal" class="list-group-item-text"></p>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="list-group-item">
+                        <div class="row">
+                           <div class="col-md-3">
+                              <h4 class="list-group-item-heading">Etapa Documento:</h4>
+                           </div>
+                           <div class="col-md-3">
+                              <p id="etapDocVal" class="list-group-item-text"></p>
+                           </div>
+                           <div class="col-md-3">
+                              <h4 class="list-group-item-heading">Saldo Documento:</h4>
+                           </div>
+                           <div class="col-md-3">
+                              <p id="salDocVal" class="list-group-item-text">S/.2881,122</p>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="list-group-item">
+                        <div class="row" id="row_monto">
+                           <div class="col-md-3">
+                              <h4 class="list-group-item-heading text-danger">Monto a Pagar:
+                              </h4>
+                           </div>
+                           <div class="col-md-3">
+                              <div class="input-group">
+                                 <span class="input-group-addon" id="sizing-addon2">S/.</span>
+                                 <input type="text" min="1" pattern="[1-9]\d*"
+                                    id="mtoPagarVal" name="mtoPagarVal" class="form-control" autocomplete="off" required>
+                              </div>
+                           </div>
+                           <div id="errormtoPagarVal" style="font-weight: 700;" class="col-md-6 ">
+	                       	
+	                       </div>
+                        </div>
+                     </div>
+                     <div class="list-group-item">
+                        <div class="row">
+                        <div class="col-md-6">
+                        <b><i>*El campo monto a pagar es editable.</i></b></div>
+                           <div class="col-md-offset-3 col-md-3 pull-right">
+                              <button type="button" class="btn btn-block btn-pp"
+                                 id="btnsgte" data-toggle="modal" data-target="#myModal25">
+                              Siguiente <span class="glyphicon glyphicon-chevron-right"></span>
+                              </button>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </form>
+            <form id="form2" name="form2">
+               <div class="panel panel-primary" id="panel2">
+                  <!--div class="panel-heading">
+                     <h4 class="panel-title">
+                        II. Pasarela de Pago
+                     </h4>
+                     </div-->
+                  <div class="panel-body">
+                     <div class="row">
+                        <div class="col-sm-3">
+                           <h4 class="list-group-item-heading">Medio de Pago:</h4>
+                        </div>
+                        <div class="col-sm-9">
+                           <div class="form-group">
+                              <select class="form-control" id="tipoPago" name="tipoPago"
+                                 required>
+                                 <option selected value="">Seleccione un medio de pago                                </option>
+                                 <option value="1">Cargo en Cuenta Bancaria</option>
+                                 <option value="2">Cargo en Cuenta Detracciones</option>
+                                 <option value="3">Tarjeta de Cr&eacute;dito y D&eacute;bito</option>
+                                 <option value="4">Generaci&oacute;n de
+                                    N&uacute;mero de Pago SUNAT - NPS
+                                 </option>
+                              </select>
+                              
+                             
+                           </div>
+                        </div>
+                     </div>
+                     <div class="row">
+                     <div class="col-sm-12">
+                      <div  id="errortipoPago" style="font-weight: 700;"></div>
+                      </div>
+                      </div>
+                      
+                     <div class="row">
+                         <div class="col-md-8" style="margin-top: 9px;" >
+                           <div class="panel panel-default" id="ctaBancaria">
+                              <div class="panel-heading">
+                                 <span class="glyphicon glyphicon-shopping-bank"> </span>Bancos                                 
+                              </div>
+                              <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-sm-4 col-xs-6 text-center"
+                                       style="margin-top: 10px">
+                                       <label>
+                                       	  <!-- PAS20191U210600034 -->
+                                          <input type="radio" name="banco1"
+                                             value="02"> <!--img src="/a/imagenes/bn-01.png"-->
+                                             <img src="/a/imagenes/bcp_94x28.jpg"/>
+                                          <div class="panel Pagos-Bancos_">
+                                             Horarios de Atenci&oacute;n
+                                             <hr>
+                                            <span>Las 24 horas, los 7 d&iacute;as de la
+                                             semana.</span>
+                                          </div>
+                                       </label>
+                                    </div>
+                                    <div class="col-sm-4  col-xs-6 text-center"
+                                       style="margin-top: 10px">
+                                       <label>
+                                          <input type="radio" name="banco1"
+                                             value="09"> <!--img src="/a/imagenes/bn-02.png"-->
+                                             <img src="/a/imagenes/scotia_94x28.jpg"/>
+                                          <div class="panel Pagos-Bancos_">
+                                             Horarios de Atenci&oacute;n
+                                             <hr>
+                                             <span>Las 24 horas, los 7 d&iacute;as de la
+                                             semana.</span>
+                                          </div>
+                                       </label>
+                                    </div>
+                                    <div class="col-sm-4  col-xs-6  text-center"
+                                       style="margin-top: 10px">
+                                       <label>
+                                          <input type="radio" name="banco1"
+                                             value="11"> <!--img src="/a/imagenes/bn-03.png"-->
+                                             <img src="/a/imagenes/bbva_94x28.jpg"/>
+                                          <div class="panel Pagos-Bancos_">
+                                             Horarios de Atenci&oacute;n
+                                             <hr>
+                                             <span>Las 24 horas, excepto de 07:45p.m. a 00:00 horas.</span>
+                                          </div>
+                                       </label>
+                                    </div>
+                                    <div class="col-sm-4  col-xs-6  text-center"
+                                       style="margin-top: 10px">
+                                       <label>
+                                          <input type="radio" name="banco1"
+                                             value="03"> <!--img src="/a/imagenes/bn-04.png"-->
+                                             <img src="/a/imagenes/interbank_94x28.jpg"/>
+                                          <div class="panel Pagos-Bancos_">
+                                             Horarios de Atenci&oacute;n
+                                             <hr>
+                                             <span>De 00:30a.m. a 07:58p.m., los 7 d&iacute;as de la
+					semana.
+                                             </span>
+                                          </div>
+                                       </label>
+                                    </div>
+                                    <div class="col-sm-4  col-xs-6  text-center"
+                                       style="margin-top: 10px">
+                                       <label>
+                                          <input type="radio" name="banco1"
+                                             value="38"> <!--img src="/a/imagenes/bn-05.png"-->
+                                             <img src="/a/imagenes/banbif_94x28.jpg"/>
+                                          <div class="panel Pagos-Bancos_">
+                                             Horarios de Atenci&oacute;n
+                                             <hr>
+                                             <span>De 08:00a.m. a 10:00p.m., de lunes a domingo
+                                             </span>
+                                          </div>
+                                       </label>
+                                    </div>
+                                    <div class="col-sm-4  col-xs-6  text-center"
+                                       style="margin-top: 10px">
+                                       <label>
+                                          <input type="radio" name="banco1"
+                                             value="07"> <!--img src="/a/imagenes/bn-06.png"-->
+                                             <img src="/a/imagenes/citi_94x28.jpg"/>
+                                          <div class="panel Pagos-Bancos_">
+                                             Horarios de Atenci&oacute;n
+                                             <hr>
+                                             <span> De 08:00a.m. a 08:00p.m., de lunes a viernes.
+                                             </span>
+                                          </div>
+                                       </label>
+                                    </div>                                    
+                                    <div class="col-sm-4  col-xs-6  text-center"
+                                       style="margin-top: 10px">
+                                       <label>
+                                          <input type="radio" name="banco1"
+                                             value="53"> <!--img src="/a/imagenes/bn-09.png"-->
+                                             <img src="/a/imagenes/gnb_94x28.png"/>
+                                          <div class="panel Pagos-Bancos_">
+                                             Horarios de Atenci&oacute;n
+                                             <hr>
+                                             <span>Las 24 horas, los 7 d&iacute;as de la
+                                             semana.</span>
+                                          </div>
+                                       </label>
+                                    </div>                                    
+                                    <div class="col-sm-4  col-xs-6  text-center"
+                                       style="margin-top: 10px">
+                                       <label>
+                                          <input type="radio" name="banco1"
+                                             value="35"> <!--img src="/a/imagenes/bn-10.png"-->
+                                             <img src="/a/imagenes/pichincha_94x28.png"/>
+                                          <div class="panel Pagos-Bancos_">
+                                             Horarios de Atenci&oacute;n
+                                             <hr>
+                                             <span>De 03:01a.m. a 10:59p.m., de lunes a domingo.
+                                             </span>
+                                          </div>
+                                       </label>
+                                    </div>
+                                    <div class="col-sm-4  col-xs-6  text-center"
+                                       style="margin-top: 10px">
+                                       <label>
+                                          <input type="radio" name="banco1"
+                                             value="23"> <!--img src="/a/imagenes/bn-11.png"-->
+                                             <img src="/a/imagenes/comercio_94x28.jpg"/>
+                                          <div class="panel Pagos-Bancos_">
+                                             Horarios de Atenci&oacute;n
+                                             <hr>
+                                             <span>Las 24 horas, los 7 d&iacute;as de la semana.</span>
+                                          </div>
+                                       </label>
+                                    </div>                                    
+                                    <div class="col-sm-4  col-xs-6  text-center"
+                                       style="margin-top: 10px">
+                                       <label>
+                                          <input type="radio" name="banco1"
+                                             value="22"> <!--img src="/a/imagenes/bn-12.png"-->
+                                             <img src="/a/imagenes/santander_94x28.png"/>
+                                          <div class="panel Pagos-Bancos_">
+                                             Horarios de Atenci&oacute;n
+                                             <hr>
+                                             <span> De 08:00a.m. a 08:00p.m., de lunes a viernes.</span>
+                                          </div>
+                                       </label>
+                                    </div>
+                                 </div>
+                                   <div class="row">
+                                   		<div  class="col-sm-12 text-center" id="errorbanco1" style="font-weight: 700;"></div>
+                                   </div>
+								 
+                              </div>
+							   <div class="panel-footer"> <h6> "Previamente debe haber celebrado un convenio de
+                                    afiliaci&oacute;n con su banco. Para tal efecto
+                                    cont&aacute;ctese con su banco o sectorista" </h6></div>
+                           </div>
+                       
+                           <div class="panel panel-default" id="ctaDetra">
+                              <div class="panel-heading">
+                                 Cargo en Cuenta Detracciones                                
+                              </div>
+                              <div class="panel-body">
+                                <div class="row">
+								  <div class="text-center">
+                                    <label>
+                                       <!--input type="radio" name="banco2"--> <img
+                                          src="/a/imagenes/bn-07.png">
+                                    </label>
+                                 </div>
+								
+                                    </div>
+								
+                              </div>
+							    <div class="panel-footer">  <h6>"Servicio disponible de 8 am a 8 pm de lunes a
+                                    s&aacute;bado" </h6>
+								</div>
+                           </div>
+
+                           <div class="panel panel-default" id="CreDeb" style="display:none">
+                              <div class="panel-heading">
+                                 Tarjeta de Cr&eacute;dito y D&eacute;bito                                
+                              </div> 
+                              <div class="col-sm-4  col-xs-4  text-center" style="margin-top: 10px">
+	                          	<label>
+	                                	<input type="radio" name="tarjeta1" checked value="67"> <img src="/a/imagenes/visa.bmp">
+	                            </label>
+                              </div>                                    
+                              <div class="col-sm-4  col-xs-4  text-center" style="margin-top: 10px">
+	                             <label>
+	                                	<input type="radio" name="tarjeta1" value="66"> <img src="/a/imagenes/mastercard.jpg">
+	                             </label>
+							  </div>
+							  <div class="col-sm-4  col-xs-4  text-center" style="margin-top: 10px">
+	                             <label>
+	                                	<input type="radio" name="tarjeta1" value="69"> <img src="/a/imagenes/americanexpress.jpg">
+	                             </label>
+							  </div>
+							  <div class="panel-footer">  <h6>"Su tarjeta VISA debe estar afiliada a Verified by Visa." </h6>
+							  </div>
+                           </div>
+						   
+                           <div class="panel panel-default" id="NPS">
+                              <div class="panel-heading">
+                                 NPS (Generaci&oacute;n de c&oacute;digo para
+                                    pago en bancos)                              
+                              </div>
+                              <div class="panel-body">
+                                <div class="row">
+								     <div class="text-center">
+                                    <button id="btn-nps" type="button" class="hidden"
+                                       data-toggle="modal" data-target="#npsconstancia"></button>
+                                    <label>
+                                       <!--input id="click-nps" type="radio" name="banco4"-->
+                                       <img src="/a/imagenes/pago4.png">
+                                    </label>
+                                 </div>
+								   
+                                    </div>
+								
+                              </div>
+							  <div class="panel-footer">  <h6>
+							  "Este n&uacute;mero le permite efectuar el pago en cualquier
+                                    oficina del Scotiabank, Interbank, Banco de Cr&eacute;dito
+                                    BCP, BBVA Continental, Naci&oacute;n, BanBif, Comercio y GNB.
+                                    Tambi&eacute;n puede efectuar el pago en los Agentes BCP del
+                                    Banco de Cr&eacute;dito, Agentes MultiRed del Banco de la
+                                    Naci&oacute;n y Agentes Interbank. Adem&aacute;s, en los
+                                    portales web del Scotiabank, Banco de Cr&eacute;dito BCP, Comercio y GNB." </h6>
+							  </div>
+                           </div>
+                        </div>
+						
+                        <div class="col-md-4" style="margin-top: 9px;">
+                           <div class="panel panel-default">
+                              <div class="panel-heading">
+                                 <span class="glyphicon glyphicon-shopping-cart"> </span>Importe
+                                 Total
+                              </div>
+                              <div class="panel-body">
+                                 <div class="row">
+                                    <dl style="margin-bottom: 0" class="text-center">
+                                       <dd>
+                                          <h3 class="title-ui" id="imp_total"></h3>
+                                       </dd>
+                                    </dl>
+                                    <br />
+                                 </div>
+                                 <div class="row">
+                                    <div class="col-sm-6 col-xs-6">
+                                       <button type="button" class="btn btn-block  btn-pp"
+                                          id="btnregresar" data-toggle="modal"
+                                          data-target="#myModal25">
+                                       <span class="glyphicon glyphicon-chevron-left"></span>Volver
+                                       </button>
+                                    </div>
+                                    <div class="col-sm-6 col-xs-6">
+                                       <button type="button" class="btn btn-block btn-pp "
+                                          id="btnPagar2" name="btnPagar2" data-toggle="modal"
+                                          data-target="#myModal25">
+                                       Pagar <span class="glyphicon glyphicon-chevron-right"></span>
+                                       </button>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </form>
+            <div class="panel panel-primary" id="panel3">
+               <form id="form_children">
+                  <input name="action" id="action" value="record" type="hidden">                                          
+                  <input name="cod_item" id="cod_item" value="1662tr" type="hidden">
+                  <input name="codTipOpe" id="codTipOpe" value="" type="hidden">
+                  <input name="num_ope" id="num_ope" value="" type="hidden">
+                  <input name="map_constancia" id="map_constancia" value="" type="hidden">
+               </form>
+               <div class="panel-body">
+                  <div id="recordForm">
+                     <!-- inicio Constancia declaracion y pago-->
+                     <div class="row">
+                        <div class="col-sm-12">
+                           <strong>Pago de Valores (Formulario 1662)</strong>
+                        </div>
+                     </div>
+                     <div class="row">
+                        <div class="col-sm-4">
+                           <strong>N&uacute;mero de Orden:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                           <div id="num_ord"></div>
+                        </div>
+                     </div>
+                     <br>
+                     <div class="row">
+                        <div class="col-sm-4">
+                           <strong>RUC:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                           <div id="num_ruc"></div>
+                        </div>
+                     </div>
+                     <div class="row">
+                        <div class="col-sm-4">
+                           <strong>Nombre o Raz&oacute;n Social:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                           <div id="des_ruc"></div>
+                        </div>
+                     </div>
+                     <div class="row">
+                        <div class="col-sm-4">
+                           <strong>Periodo:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                           <div id="per_doc_fmt"></div>
+                        </div>
+                     </div>
+                     <div class="row">
+                        <div class="col-sm-4">
+                           <strong>Tipo de pago:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                           <div id="tip_pag"></div>
+                        </div>
+                     </div>
+                     <div class="row">
+                        <div class="col-sm-4">
+                           <strong>Tributo:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                           <div id="tributo"></div>
+                        </div>
+                     </div>
+                     <div class="row">
+                        <div class="col-sm-4">
+                           <strong>N&uacute;mero de documento:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                           <div id="num_doc_pag"></div>
+                        </div>
+                     </div>
+                     <div class="row">
+                        <div class="col-sm-4">
+                           <strong>Importe pagado:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                           <div id="mto_pag"></div>
+                        </div>
+                     </div>
+                     <br>
+                     <div class="row">
+                        <div class="col-sm-4">
+                           <strong>N&uacute;mero de operaci&oacute;n SUNAT:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                           <div id="num_ope_fmt"></div>
+                        </div>
+                     </div>
+                     <div id="show_des_tip_pag" class="row">
+                        <div class="col-sm-4">
+                           <strong>Tipo de Pago:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                           <div id="des_tip_pag"></div>
+                        </div>
+                     </div>
+                     <div class="row">
+                        <div class="col-sm-4">
+                           <strong>Banco:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                           <div id="des_bco"></div>
+                        </div>
+                     </div>
+                     <div class="row">
+                        <div class="col-sm-4">
+                           <strong>N&uacute;mero de Operaci&oacute;n Bancaria:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                           <div id="num_ope_bco"></div>
+                        </div>
+                     </div>
+                     <div class="row">
+                        <div class="col-sm-4">
+                           <strong>Fecha de Operaci&oacute;n Bancaria:</strong>
+                        </div>
+                        <div class="col-sm-8">
+                           <div id="fec_ope_bco"></div>
+                        </div>
+                     </div>
+                     <div id="msg">
+                        <div class="row">
+                           <div class="col-sm-12">
+                              <h6 style="text-align: justify;">
+                                 Estimado contribuyente, usted puede consultar su pago en la
+                                 opci&oacute;n "Mis declaraciones y pagos" de SUNAT
+                                 Operaciones en L&iacute;nea.<br> El saldo de la deuda
+                                 pagada ser&aacute; actualizado en unos minutos.
+                              </h6>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+                  <!-- FIN Constancia Declaracion y Pago-->
+                  <!-- inicio Constancia NPS-->
+                  <div id="recordForm2">
+                     <div class="row">
+                        <div class="col-sm-4">
+                           <strong>N&uacute;mero de Pago SUNAT (NPS):</strong>
+                        </div>
+                        <div class="col-sm-8">
+                           <div id="num_nps_fmt"></div>
+                        </div>
+                     </div>
+                     <br>
+                     <div class="row">
+                        <div class="col-sm-4">Importe a pagar:</div>
+                        <div class="col-sm-8">
+                           <div id="mto_ope_fmt"></div>
+                        </div>
+                     </div>
+                     <div class="row">
+                        <div class="col-sm-4">Fecha l&iacute;mite de pago:</div>
+                        <div class="col-sm-8">
+                           <div id="fec_fin_vig_fmt"></div>
+                        </div>
+                     </div>
+                     <br>
+                     <div class="row">
+                        <div class="col-sm-12">
+                           <h6 style="text-align: justify;">
+                              Pague en cualquier oficina de los bancos Scotiabank,
+                              Interbank, Banco de Cr&eacute;dito BCP, BBVA Continental,
+                              Naci&oacute;n, BanBif, Comercio y GNB. Tambi&eacute;n est&aacute; disponible
+                              el pago en los Agentes BCP del Banco de Cr&eacute;dito,
+                              Agentes MultiRed del Banco de la Naci&oacute;n y Agentes
+                              Interbank. Adem&aacute;s, en los portales web bancarios del
+                              Scotiabank, Banco de Cr&eacute;dito BCP, Comercio y GNB.<br> <b>IMPORTANTE:</b>&nbsp;El
+                              presente documento no es una constancia de pago.
+                           </h6>
+                        </div>
+                     </div>
+                     <br>
+                     <div class="row">
+                        <div class="col-sm-12">
+                           <h6 style="text-align: justify;">Deuda tributaria que
+                              ser&aacute; cancelada luego que realice el pago:
+                           </h6>
+                           <div class="table-responsive">
+                              <table style="border: 1px solid #FFF;" id="tableh"
+                                 class="table tb-pago  nowrap">
+                                 <tbody class="tb-pago">
+                                    <tr bgColor="#dbeaf5">
+                                       <td align="center" valign="middle" class="tb-pago"><b>Periodo</b></td>
+                                       <td align="center" valign="middle" class="tb-pago"><b>Tributo</b></td>
+                                       <td align="center" valign="middle" class="tb-pago"><b>T.Asociado</b></td>
+                                       <td align="center" valign="middle" class="tb-pago"><b>Documento</b></td>
+                                       <td align="center" valign="middle" class="tb-pago"><b>Pago</b></td>
+                                    </tr>
+                                    <tr bgColor="#fff7e5">
+                                       <td align="center" class="tb-pago">
+                                          <div
+                                             id="per_doc_fmt_2"></div>
+                                       </td>
+                                       <td align="center" class="tb-pago">
+                                          <div id="cod_tri"></div>
+                                       </td>
+                                       <td align="center" class="tb-pago">
+                                          <div
+                                             id="cod_tri_aso"></div>
+                                       </td>
+                                       <td align="center" class="tb-pago">
+                                          <div id="num_doc"></div>
+                                       </td>
+                                       <td align="right" class="tb-pago">
+                                          <div
+                                             id="mto_pag_fmt"></div>
+                                       </td>
+                                    </tr>
+                                 </tbody>
+                              </table>
+                              <table style="border: 1px solid #FFF;" id="tablev"
+                                 class="table tb-pago  nowrap">
+                                 <tbody class="tb-pago">
+                                    <tr class="tb-pago">
+                                       <td bgColor="#dbeaf5" align="center" class="tb-pago"><b>Periodo</b></td>
+                                       <td bgColor="#fff7e5" align="center" class="tb-pago">
+                                          <div
+                                             id="per_doc_fmt_2v"></div>
+                                       </td>
+                                    </tr>
+                                    <tr class="tb-pago">
+                                       <td bgColor="#dbeaf5" align="center" class="tb-pago"><b>Tributo</b></td>
+                                       <td bgColor="#fff7e5" align="center" class="tb-pago">
+                                          <div
+                                             id="cod_triv"></div>
+                                       </td>
+                                    </tr>
+                                    <tr class="tb-pago">
+                                       <td bgColor="#dbeaf5" align="center" class="tb-pago"><b>T.Asociado</b></td>
+                                       <td bgColor="#fff7e5" align="center" class="tb-pago">
+                                          <div
+                                             id="cod_tri_asov"></div>
+                                       </td>
+                                    </tr>
+                                    <tr class="tb-pago">
+                                       <td bgColor="#dbeaf5" align="center" class="tb-pago"><b>Documento</b></td>
+                                       <td bgColor="#fff7e5" align="center" class="tb-pago">
+                                          <div
+                                             id="num_docv"></div>
+                                       </td>
+                                    </tr>
+                                    <tr class="tb-pago">
+                                       <td bgColor="#dbeaf5" align="center" class="tb-pago"><b>Pago</b></td>
+                                       <td bgColor="#fff7e5" align="center" class="tb-pago">
+                                          <div
+                                             id="mto_pag_fmtv"></div>
+                                       </td>
+                                    </tr>
+                                 </tbody>
+                              </table>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="row">
+                        <div class="col-sm-12 ">                           
+                           <table class="pull-right">
+                              <tr>
+                                 <td align="right">Total :</td>
+                                 <td align="right">
+                                    <b>
+                                       <div id="mto_ope_fmt_2"></div>
+                                    </b>
+                                 </td>
+                              </tr>
+                           </table>
+                        </div>
+                     </div>
+                     <div class="row">
+                        <div class="col-sm-4">RUC:</div>
+                        <div class="col-sm-8">
+                           <div id="num_ruc_2"></div>
+                        </div>
+                     </div>
+                     <div class="row">
+                        <div class="col-sm-4">Nombre o Raz&oacute;n Social:</div>
+                        <div class="col-sm-8">
+                           <div id="des_ruc_2"></div>
+                        </div>
+                     </div>
+                     <!-- FIN Constancia NPS-->
+                     <br>
+                  </div>
+                  <div class="row">
+                     <div class="col-sm-12 ">
+                        <button type="button" class="btn btn-primary pull-right"
+                           style="margin-left: 5px;" id="btn_save">
+                        <span class="glyphicon glyphicon-file"></span> Guardar
+                        </button>
+                        <button type="button" class="btn btn-primary  pull-right"
+                           style="margin-left: 5px;" id="btn_print">
+                        <span class="glyphicon glyphicon-print"></span> Imprimir
+                        </button>
+                        <button type="button" class="btn btn-primary pull-right"
+                           style="margin-left: 5px;" id="btn_email">
+                        <span class="glyphicon glyphicon-envelope"></span> Enviar
+                        Correo
+                        </button>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+<div class="modal fade" id="confirm-submit" tabindex="-1" role="dialog"
+   aria-labelledby="myModalLabel" aria-hidden="true">
+   <div class="modal-dialog" id="modalConfirma">
+      <div class="modal-content" id="modal2Content" >
+         <div class="modal-header"></div>
+         <div class="modal-body">
+            <div id="msg_info"></div>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-default" id="aceptConfirm" data-dismiss="modal">Aceptar</button>
+         </div>
+      </div>
+   </div>
+</div>
+<div class="modal fade" id="confirm-submit-visa" tabindex="-1" role="dialog"
+   aria-labelledby="myModalLabel" aria-hidden="true"  >
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header"><h4>Tarjeta de Cr&eacute;dito y D&eacute;bito</h4></div>
+         <div class="modal-body">
+            <div id="msg_info_visa"></div>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-default" id="aceptConfirmVisa" data-dismiss="modal">Aceptar</button>
+         </div>
+      </div>
+   </div>
+</div>
+	<!-- Modal 01 -->
+	<div class="modal fade"  id="popup-visa" tabindex="-1" role="dialog" aria-labelledby="h4ModalLabel01" data-backdrop="static" data-keyboard="false">
+		<div class="modal-dialog modal-md"  role="document" style="margin: 0px auto ! important; height: 100% ! important;  ">
+			<div class="modal-content" style="height: 100% !important;">
+				<div class="modal-header" style="border-bottom: 0px !important;padding: 5px 15px !important;">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Cerrar"><span aria-hidden="true">&times;</span></button>
+					<!-- <h4 class="modal-title" id="h4ModalLabel01">T�tulo Modal 01</h4> -->
+				</div>
+				<div class="modal-body" style="padding: 0px !important;height: 95%!important;">
+					<iframe id="iframeVisa1" 
+							name="iframeVisa1" 
+							src="" 
+							width="100%" 
+							height="100%" style="border: 0 none;"></iframe>
+					<iframe name="iframeVisa2" id="iframeVisa2" src="" width="100%" height="107%" style="display:none;border: 0 none;" ></iframe>
+					<form name="formVisaNuevoEsquema" id="formId" action="" method="POST" target="iframeVisa2" >					
+						<input type="hidden" name="ETICKET" id="idEticket"  value=""/>
+						<input type="hidden" name="I1" id="idI1" value=""/>
+						<input type="hidden" name="I2" id="idI2" value=""/>
+						<input type="hidden" name="I3" id="idI3" value=""/>
+						<input type="hidden" name="I4" id="idI4" value=""/>
+						<input type="hidden" name="I5" id="idI5" value=""/>
+						<input type="hidden" name="I6" id="idI6" value=""/>
+						<input type="hidden" name="I7" id="idI7" value=""/>
+						<input type="hidden" name="I8" id="idI8" value=""/>
+						<input type="hidden" name="I9" id="idI9" value=""/>
+						<input type="hidden" name="I10" id="idI10" value=""/>
+						<input type="submit" value="Ir"  id="btnEnvioForm2" style="display: none;">
+					</form>					
+				</div>
+			</div>
+		</div>
+	</div>
+
+<div class="modal fade" id="confirm-submit-mastercard" tabindex="-1" role="dialog"
+   aria-labelledby="myModalLabel" aria-hidden="true"  >
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header"><h4>Tarjeta de Cr&eacute;dito y D&eacute;bito</h4></div>
+         <div class="modal-body">
+            <div id="msg_info_mastercard"></div>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-default" id="aceptConfirmMastercard" data-dismiss="modal">Aceptar</button>
+         </div>
+      </div>
+   </div>
+</div>
+
+<div class="modal fade" id="confirm-submit-amex" tabindex="-1" role="dialog"
+   aria-labelledby="myModalLabel" aria-hidden="true">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header"><h4>Tarjeta de Cr&eacute;dito y D&eacute;bito</h4></div>
+         <div class="modal-body">
+            <div id="msg_info_amex"></div>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-default" id="aceptConfirmAmex" data-dismiss="modal">Aceptar</button>
+         </div>
+      </div>
+   </div>
+</div>
+
+<div class="modal fade" id="confirm-wait" tabindex="-1" role="dialog"
+   aria-labelledby="myModalLabel" aria-hidden="true">
+   <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+         <div class="modal-header"></div>
+         <div class="modal-body">
+            <div id="animated-gif-container"></div>
+         </div>
+      </div>
+   </div>
+</div>
+<div class="modal fade" id="confirm-email" tabindex="-1" role="dialog"
+   aria-labelledby="myModalLabel" aria-hidden="true">
+   <div class="modal-dialog">
+       
+      <div class="modal-content">
+         <form id="form3" name="form3">
+            <input name="cod_report_email" id="cod_report_email" value=""
+               type="hidden">
+               <div class="modal-header">
+            <h4 class="modal-title" id="myModalLabel">
+               <i></i>Enviar Correo              
+            </h4>
+         </div>
+            <div class="modal-body">     
+                      
+               <div class="row">
+               <div class="col-sm-4">
+               Correo electr&oacute;nico :
+               </div>  
+                  <div class="col-sm-8">
+                     <input type="email" id="email_name" name="email_name"
+                        class="form-control" placeholder=""
+                        aria-describedby="sizing-addon2" required>
+                  </div>
+                   
+               </div><br>
+               <div class="row">
+                      		<div  class="col-sm-12 text-center" id="erroremail_name" style="font-weight: 700;" >
+                      			
+                      		</div>
+                      </div>
+            </div>
+            <div class="modal-footer">
+               <button type="button" class="btn btn-primary" id="submit_email">Aceptar</button>
+               <button type="button" class="btn btn-default" id="cancelCorreo" data-dismiss="modal">Cancelar</button>
+            </div>
+         </form>
+      </div>
+   </div>
+</div>
+	<!-- DEC- Fin Modal Pago de Valores-->
+	
+	<script src="/a/js/libs/jquery/1.11.2/jquery.min.js"></script>
+	<script src="/a/js/libs/bootstrap/3.3.2/plugins/jquery-validation-1.13.1/dist/jquery.validate.min.js"></script>	
+    <script src="/a/js/libs/bootstrap/3.3.2/plugins/jquery-validation-1.13.1/dist/localization/messages_es.min.js"></script>
+    <script src="/a/js/libs/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+	<script src="/a/js/apps/recurso2/documentacion/Scripts/placeholders/placeholders.min.js"></script>
+    <script src="/a/js/apps/recurso2/documentacion/Scripts/app/jquery.bootpag.min.js"></script>
+	<script src="/a/js/apps/recurso2/documentacion/Scripts/bootstrap-jquery-ui/js/jquery-ui-dragdrog.js"></script>
+	<script src="/a/js/apps/workspace/ws.js"></script>
+	<script type="text/javascript" src="/a/js/bootstrap/3.2.0/js/jquery.blockUI.js"></script>
+	
+	<script>
+		function initDiv(){
+			if(/iPhone|iPad|iPod/i.test(navigator.userAgent) ) {
+				document.getElementById("divMisCarpetas").style.visibility = "hidden";
+				document.getElementById("divMisEtiquetas").style.visibility = "hidden";
+			}
+		}
+		initDiv();
+	</script>
+	
+	<script>
+		var $w = $(window);
+        var VAR_CONTEXT = "/ol-ti-itvisornoti/visor";
+        var VAR_CONTEXT2 = "/ol-ti-itvisornoti/pagoValor";
+        //PAS20181U210200037:CSP-Inicio
+        var VAR_UBEAN = "rO0ABXNyAC1wZS5nb2Iuc3VuYXQudGVjbm9sb2dpYS5tZW51LmJlYW4uVXN1YXJpb0JlYW6pwYmu/JtYOAIAFFMAB25pdmVsVU9MAAphcGVNYXRlcm5vdAASTGphdmEvbGFuZy9TdHJpbmc7TAAKYXBlUGF0ZXJub3EAfgABTAAHY29kQ2F0ZXEAfgABTAAJY29kRGVwZW5kcQB+AAFMAAxjb2RUT3BlQ29tZXJxAH4AAUwABWNvZFVPcQB+AAFMAAZjb3JyZW9xAH4AAUwAB2Rlc0NhdGVxAH4AAUwABWRlc1VPcQB+AAFMAAJpZHEAfgABTAAJaWRDZWx1bGFycQB+AAFMAAVsb2dpbnEAfgABTAADbWFwdAAPTGphdmEvdXRpbC9NYXA7TAAObm9tYnJlQ29tcGxldG9xAH4AAUwAB25vbWJyZXNxAH4AAUwAC25yb1JlZ2lzdHJvcQB+AAFMAAZudW1SVUNxAH4AAUwABnRpY2tldHEAfgABTAAKdXN1YXJpb1NPTHEAfgABeHIAEGphdmEubGFuZy5PYmplY3QAAAAAAAAAAAAAAHhwAAB0AAB0AAB0AAB0AAQwMDIzdAAAdAAAdAAAdAAAdAAAdAAAdAABLXQAEzIwNTAxNjM3NTA2VElTVEFDSEFzcgARamF2YS51dGlsLkhhc2hNYXAFB9rBwxZg0QMAA0kADWNhY2hlX2JpdG1hc2tGAApsb2FkRmFjdG9ySQAJdGhyZXNob2xkeHD/////P0AAAAAAAAx3CAAAABAAAAAKdAAJdGlwT3JpZ2VudAACSVR0AAdkZHBEYXRhc3EAfgAR/////z9AAAAAAAAMdwgAAAAQAAAACXQACXQxMjM4X2VtcHQAATB0AApkZHBfZXN0YWRvdAACMDB0AApkZHBfdHBvZW1wdAACMDd0AApkZHBfZmxhZzIydAACMDB0AApkZHBfbnVtcmVndAAEMDAyM3QACmRkcF91YmlnZW90AAYxNTAxNDN0AApkZHBfdGFtYW5vdAACMDN0AAhkZHBfY2lpdXQABTUxNTAydAAKZGRwX251bXJ1Y3QACzIwNTAxNjM3NTA2eHQABXJvbGVzc3EAfgARAAAAAD9AAAAAAAAAdwgAAAAQAAAAAHh0AAp0aXBVc3VhcmlvdAABMHQACGpuZGlQb29sdAAFcDAwMjN0AAZpZE1lbnV0AA0xMjcwMTcyMzAxNzU0dAAOdmlnSW52b2NhSGFzdGFzcgAOamF2YS5sYW5nLkxvbmc7i+SQzI8j3wIAAUoABXZhbHVleHIAEGphdmEubGFuZy5OdW1iZXKGrJUdC5TgiwIAAHhxAH4AAwAAAaDlABFBdAAOdmlnSW52b2NhRGVzZGVzcQB+ADIAAAGg5PX/IXQABmlzQ2xvbnNyABFqYXZhLmxhbmcuQm9vbGVhbs0gcoDVnPruAgABWgAFdmFsdWV4cQB+AAMAdAAMcHJpbWVyQWNjZXNvc3EAfgA4AXh0ABdWSUxMQSBORVRXT1JLUyBFLkkuUi5MLnQAF1ZJTExBIE5FVFdPUktTIEUuSS5SLkwudAAAdAALMjA1MDE2Mzc1MDZ0ABMxMjcwMTcyMzAxNzU0LWJ1em9udAAIVElTVEFDSEE=";
+        localStorage.removeItem("SUNAT.VAR_UBEAN");
+        localStorage.setItem("SUNAT.VAR_UBEAN", VAR_UBEAN);
+        //PAS20181U210200037:CSP-Fin
+		var listEtiquetas = $.parseJSON('[{"codMensaje":0,"indEstado":0,"indDesta":0,"indUrg":0,"indTipmsj":0,"codEtiqueta":"10","descEtiqueta":"VALORES","cantEtiqueta":0,"colorEtiqueta":"ce0d0e"},{"codMensaje":0,"indEstado":0,"indDesta":0,"indUrg":0,"indTipmsj":0,"codEtiqueta":"11","descEtiqueta":"RESOLUCIONES DE COBRANZA","cantEtiqueta":0,"colorEtiqueta":"ff9200"},{"codMensaje":0,"indEstado":0,"indDesta":0,"indUrg":0,"indTipmsj":0,"codEtiqueta":"12","descEtiqueta":"RESOLUCIONES DE FRACCIONAMIENTO","cantEtiqueta":0,"colorEtiqueta":"00afff"},{"codMensaje":0,"indEstado":0,"indDesta":0,"indUrg":0,"indTipmsj":0,"codEtiqueta":"13","descEtiqueta":"RESOLUCIONES NO CONTENCIOSAS","cantEtiqueta":0,"colorEtiqueta":"89bd12"},{"codMensaje":0,"indEstado":0,"indDesta":0,"indUrg":0,"indTipmsj":0,"codEtiqueta":"14","descEtiqueta":"RESOLUCIONES DE FISCALIZACION","cantEtiqueta":0,"colorEtiqueta":"00b27e"},{"codMensaje":0,"indEstado":0,"indDesta":0,"indUrg":0,"indTipmsj":0,"codEtiqueta":"15","descEtiqueta":"NOTIFICACIONES ANTERIORES","cantEtiqueta":0,"colorEtiqueta":"ff4546"},{"codMensaje":0,"indEstado":0,"indDesta":0,"indUrg":0,"indTipmsj":0,"codEtiqueta":"16","descEtiqueta":"AVISOS","cantEtiqueta":0,"colorEtiqueta":"d45aed"},{"codMensaje":0,"indEstado":0,"indDesta":0,"indUrg":0,"indTipmsj":0,"codEtiqueta":"18","descEtiqueta":"INSPECCION NO INTRUSIVA","cantEtiqueta":0,"colorEtiqueta":"daf7a6"},{"codMensaje":0,"indEstado":0,"indDesta":0,"indUrg":0,"indTipmsj":0,"codEtiqueta":"19","descEtiqueta":"REQUERIMIENTOS DIVERSOS","cantEtiqueta":0,"colorEtiqueta":"FFC857"},{"codMensaje":0,"indEstado":0,"indDesta":0,"indUrg":0,"indTipmsj":0,"codEtiqueta":"20","descEtiqueta":"CARTAS","cantEtiqueta":0,"colorEtiqueta":"A0522D"}]');
+		var $CountBuzonMenjs = "1";
+		var optionPrint;
+		var $dvEmails;
+		var firstLoadPage = true;
+
+		var TIPO_NOTI_MEN = "0";
+		var TIPO_CARPETA= "1";
+		var TIPO_ETIQUETA= "2";
+		var flagSeleccionarChecks = false;
+		
+		function dialogAlert(text,funcBtnAceptar) {
+			
+			var params = {
+				id : "idModalMensaje",
+				title : "Alerta",
+				icon : "<i style='color: #337ab7;' class='fa fa-exclamation-triangle fa-4x'></i>",
+				textContent : text,
+				buttons : "<button id='idAceptarAlert' type='button' class='btn btn-default'>Aceptar</button>"
+			};
+		
+			dialogCustom(params);
+			$('#idAceptarAlert').on('click', function(e) {
+				$('#' + params.id).modal('hide');
+				if (funcBtnAceptar != undefined) {
+					funcBtnAceptar();
+				}
+			});
+		}
+
+		function dialogInfo(text,funcBtnAceptar) {
+		
+			var params = {
+				id : "idModalMensaje",
+				title : "Mensaje",
+				icon : "<i style='color: #337ab7;' class='fa fa-info-circle fa-4x'></i>",
+				textContent : text,
+				buttons : "<button id='idAceptarInfo' type='button' class='btn btn-default'>Aceptar</button>"
+			};
+		
+			dialogCustom(params);
+			$('#idAceptarInfo').on('click', function(e) {
+				$('#' + params.id).modal('hide');
+				if (funcBtnAceptar != undefined) {
+					funcBtnAceptar();
+				}
+			});
+		}
+		
+		function dialogCustom(dialog) {
+			
+			$('#' + dialog.id).modal({
+				keyboard : false
+			});
+			$('#' + dialog.id).modal('show');
+			$("#idTituloDialog").text(dialog.title);
+			$("#idModelTbl tr td:eq(0)").html(dialog.icon);
+			$("#idModelTbl tr td:eq(1)").html(dialog.textContent);
+			$("#idButtonFooter").html(dialog.buttons);
+		}
+
+		function dialogConfirm(text, funcBtnAceptar, funcBtnCancelar) {
+		
+			var params = {
+				id : "idModalMensaje",
+				title : "Confirmaci\u00f3n",
+				icon : "<i style='color: #337ab7;' class='fa fa-question-circle fa-4x'></i>",
+				textContent : text,
+				buttons : "<button id='idAceptarConfig' type='button' class='btn btn-default'>Aceptar</button>"
+						+ "<button id='idCancelarConfig' type='button' class='btn btn-default' >Cancelar</button>"
+			};
+		
+			dialogCustom(params);
+			if (funcBtnAceptar != undefined) {
+				$("#idAceptarConfig").on("click", function() {
+					$('#' + params.id).modal('hide');
+					funcBtnAceptar();
+				});
+		
+			}
+		
+			$('#idCancelarConfig').on('click', function(e) {
+				$('#' + params.id).modal('hide');
+				if (funcBtnCancelar != undefined) {
+					funcBtnCancelar();
+				}
+			});
+		
+		}
+	</script>
+	
+	<script src="/a/js/apps/declaracion_pago/pagoValores/js/valores.js"></script>
+	<!-- PAS20181U210200037:CSP-Inicio -->
+	<script src="/a/js/apps/declaracion_pago/pagoValores/js/valores-plataforma.js"></script>
+	<!-- PAS20181U210200037:CSP-Fin -->
+	<script>
+		function initComponentes(){
+		
+			actualizarBotonEliminar();
+			cargarCarpetas();
+			cargarEtiquetas();
+			listarAlertas();
+			if(!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+				fDragAndDrop();
+			}
+			fPagination();
+			$("#elimiarMensaje").hide();
+			
+			
+			$("#btnActualizar").on("click", function(e){
+				location.reload(true);
+			});
+			
+			$('#frmBusqueda').on('submit', function(e){
+				$("#idBuscarAsunto").val("true");
+		      	fListarNotiMen('?','?','?',1,'list','',"NADA",true);
+		      	e.preventDefault();
+			});
+			
+			$('#frmBusquedaMovil').on('submit', function(e){
+				$("#idBuscarAsunto").val("true");
+		    	$("#inputFiltro").val($("#inputFiltroMovil").val());
+		      	fListarNotiMen('?','?','?',1,'list','',"NADA",true);
+		      	e.preventDefault();
+			});
+			
+			$('#editCarpeta').on('show.bs.modal', function (event) {
+				var button = $(event.relatedTarget);
+				var nombre_carpeta = button.data('nombre_carpeta'); 
+				var codigo_carpeta = button.data('codigo_carpeta');
+				var modal = $(this);
+				modal.find('.nombre_carpeta').text(nombre_carpeta);
+				modal.find('#edit_nom_carpeta').val(nombre_carpeta);
+				modal.find('#edit_cod_carpeta').val(codigo_carpeta);
+			});
+			
+			$('#deleteCarpeta').on('show.bs.modal', function (event) {
+		  		var button = $(event.relatedTarget) // Button that triggered the modal
+		  		var nombre_carpeta = button.data('nombre_carpeta'); 
+				var codigo_carpeta = button.data('codigo_carpeta');
+				var modal = $(this);
+				modal.find('.nombre_carpeta').text(nombre_carpeta);
+				modal.find('#delete_cod_carpeta').val(codigo_carpeta); 
+			});
+			
+			$(".lastCorreo").on("click",function(){
+				$(".pagination li.prev").trigger("click");
+			});
+
+			$(".nextCorreo").on("click",function(){
+				$(".pagination li.next").trigger("click");
+			});
+			
+			$(document).on("click", ".link-carpeta", function(e){
+				$(".link-carpeta").removeClass("selectedFolder");
+				var nombreCarpeta = $(this).attr("name");
+				$(this).addClass("selectedFolder");
+				$("#tituloCarpeta").html(nombreCarpeta);
+			});
+			$("#aListNoti").trigger("click");
+			
+			fGetCountByTipo("1", TIPO_NOTI_MEN, parseInt($CountBuzonMenjs, 10));
+
+		}
+
+		function fGetDetalleOnClick(){
+			$(document).find(".linkMensaje").on("click",function(){
+				fGetDetalle($(this));
+			});
+		}
+
+		function fGetDetalle(elem){
+			plataformaService.onClick_BtnHide();
+			$("#detalleOpciones").show();
+			$("#divArchivosAdjuntos").show();
+			$("#detallePanel").show();
+			var codigoMensaje = elem.parent().prop("id");
+			var desAsunto = elem.text();
+			var fecPublica = elem.parent().find('.fecPublica').text();
+			var spanTag = elem.parent().find('.tag');
+			var idUrgente = elem.parent().find('#idUrgente').val();
+			var idDestacado = elem.parent().find('#idDestacado').val();
+			
+			$("#listaMensajes li").removeClass("selected");
+			elem.parent().addClass("selected");
+			
+			$("#idCodigoDetalle").val(codigoMensaje);
+			$("#idTitleDetalle").text(desAsunto);
+			$("#idFechaDetalle").text(fecPublica);
+
+			$("#tagMensaje").html("");
+			if (spanTag != undefined) {
+				$("#tagMensaje").html(spanTag.clone());
+			}
+			$("#idFavoritoDetalle").removeClass("active-btn");
+			$("#idImportanteDetalle").removeClass("active-btn");
+			if(idDestacado == 1){
+				$("#idFavoritoDetalle").addClass("active-btn");
+			}
+			if(idUrgente == 1){
+				$("#idImportanteDetalle").addClass("active-btn");
+			}
+			
+			var codigo="";
+            var tipMenj = $("#idTipMenj").val();
+            var codCarpeta = $("#idCodCarpeta").val();
+            var codEtiqueta = $("#idCodEtiqueta").val();
+            
+            if(tipMenj!=""){
+            	codigo=tipMenj;
+            }else if(codCarpeta!="" && codCarpeta!="0"){
+            	codigo=codCarpeta;
+		    }else if(codEtiqueta!="" && codEtiqueta!="0"){
+		    	codigo=codEtiqueta;
+		    }
+            
+            $.ajax({
+                url: VAR_CONTEXT+"/obtenerDetalleNotiMen",
+                dataType: "json",
+                async : false,
+                cache : false,
+                headers: {'X-Ruc': $('meta[name="meta-token"]').attr('content')},
+                contentType: "application/x-www-form-urlencoded;charset=UTF-8",
+                data : {
+                	codigoMensaje  : codigoMensaje
+                	,tipoMsj : codigo
+                }
+       		}).done(function(response) {
+       			cargarCarpetas();
+       			optionPrint = response.indTexto;
+	        	$("#idSistema").val(response.sistema);
+	        	if(!firstLoadPage){
+		        	$('.row-offcanvas').removeClass('active');
+		        	$("#verMensajes").show();
+		        	$("#verCarpetas").hide();
+		        	$("#pagerMovil").show();
+	        	}
+	        	firstLoadPage = false;
+	        	var listFileAdj = response.listAttach;
+	        	var files = [];
+	        	$.each(listFileAdj, function(i, item) {
+	        		if(item.indMensaje=="1" || item.indMensaje=="2"){//INDICADOR_ADJUNTO_TIPO_ARCHIVO
+	        			var row = addFileAdjunto(item,response);
+	        			files.push(row);
+	        		}
+	        	});
+	        	$("#divArchivosAdjuntos").hide();
+	        	if(files.length > 0){
+		        	$("#divArchivosAdjuntos").show();
+	        		$("#listArchivosAdjuntos").html(files.join(''));
+	        	}
+				buzonDocumento();
+	        	var text = '<div id="contenedorMensaje" class="contentDiv"><p>';
+           	 	text+= response.msjMensaje;
+           	 	text+='</p></div>';
+           	 	
+           	 	var iframe = "<div class='embed-responsive embed-responsive-4by3'>";
+				iframe+="<iframe id='contenedorMensaje' name='contenedorMensaje' class='contentIframe embed-responsive-item' onload='disableContextMenu();' frameBorder='0'  src='_URL_SRC_' >";
+				iframe+="El browser no soporta IFRAMES, verifique que su version del Browser sea mayor a 5.";
+				iframe+="</iframe>";
+				iframe+='</div>';
+				if(response.indTexto==1){//INDICADOR_TEXTO_SIMPLE
+            		iframe = text;
+            	 }else if(response.indTexto==2){//INDICADOR_TEXTO_URL
+            		 iframe = iframe.replace("_URL_SRC_",text);
+            	 }else if(response.indTexto==3){//INDICADOR_TEXTO_PLANTILLA
+            	     var url = ''+response.url+'';
+            	     iframe = iframe.replace("_URL_SRC_",url);
+            	 }
+				if (response.updateLeido){
+				     $("#"+codigoMensaje).removeClass("msj_nuevo");
+				 }
+            	 $(".contenedor-correo").html(iframe);
+            	 
+            	 var vTipos = [TIPO_CARPETA,TIPO_ETIQUETA,TIPO_NOTI_MEN];
+	             var vCantidades = response.countNotiMen;
+				 var vCodTipos = response.codTipos;	
+
+	             $.each(vCantidades,function(index,item){
+	            	 fGetCountByTipo(vCodTipos[index], vTipos[index], item);
+			     });
+
+			    setTimeout(function(){
+			     	if (parseInt(frameAlto) > 0) {
+						$('.embed-responsive.embed-responsive-4by3').css('height','auto');
+			     	}
+				}, 500);            
+            
+       		}).fail(function( jqXHR, textStatus, errorThrown ) {
+                alert( "error fGetDetalle: "+errorThrown +", "+jqXHR+","+textStatus);
+			});;
+			
+			listarAlertas();
+		}
+		
+		function disableContextMenu(){
+			var iframeEl = $('#contenedorMensaje').contents().get(0);
+			$(iframeEl).bind('contextmenu', function(event) {
+				return false;
+			});
+		} 
+
+		function addFileAdjunto(item,data){
+			var anexo=0;
+            if(data.tieneDocumentosAnexos){
+            	anexo=1;
+		  	}
+            var tag = '<li><a href="'+VAR_CONTEXT+'/bajarArchivo/'+item.codArchivo+'/'+anexo+'/'+$("#idSistema").val()+ '/20000000001">'+item.nomArchivo+'</a>&nbsp;('+item.tamanoArchivoFormat+')</li>';
+            return tag;
+		}
+		
+		function cargarCarpetas(){
+			getMapToDataSet(function(response){
+				listaMoverCarpeta = '<li role="separator" class="divider liMoverCarpeta"></li>';
+				listaMoverCarpeta += '<li style="padding-left: 10px;" class="text-primary liMoverCarpeta">Mover a la carpeta:</li>';
+				listaMoverCarpeta += '<li role="separator" class="divider liMoverCarpeta"></li>';
+				listaCarpetaHtml = '';
+				$.each(response, function(i, v){
+					var cant = "";
+					if(v.cantMensajes > 0){
+						cant = " ("+v.cantMensajes+") ";
+					}
+					listaMoverCarpeta += '<li><a href="javascript:void(0);" class="liMoverCarpeta" onclick="fMoverMensajes(\''+v.codCarpeta+'\',\''+v.nomCarpeta+'\');" >'+v.nomCarpeta+'</a></li>';
+					if(v.codCarpeta == "03"){ //ORDENES DE PAGO
+						listaCarpetaHtml += '<div class="item-list carpeta-item"><div name="'+v.nomCarpeta+'" class="carpeta-dragdrop" id="car_'+v.codCarpeta+'" ></div><a name="'+v.nomCarpeta+'" href="javascript:void(0)" class="list-group-item link-carpeta no-border-radius" onclick="fListarNotiMen(\'\',\''+v.codCarpeta+'\',\'\',1,\'list\',\'\',\'NADA\',true); mostrarMover(true);" data-toggle="offcanvas">' +
+						  ' <i class="fa fa-lock" style="font-size: 18px"></i>'+v.nomCarpeta+' <span class="num-item">'+cant+'</span>' +
+					      ' </a></div>';
+					} else if(v.codCarpeta == "04"){ //RES. EJEC. COACTIVA
+						listaCarpetaHtml += '<div class="item-list carpeta-item"><div name="'+v.nomCarpeta+'"  class="carpeta-dragdrop" id="car_'+v.codCarpeta+'" ></div><a name="'+v.nomCarpeta+'" href="javascript:void(0)" class="list-group-item link-carpeta no-border-radius" onclick="fListarNotiMen(\'\',\''+v.codCarpeta+'\',\'\',1,\'list\',\'\',\'NADA\',true); mostrarMover(true);" data-toggle="offcanvas">' +
+						  ' <i class="fa fa-lock" style="font-size: 18px"></i>'+v.nomCarpeta+' <span class="num-item">'+cant+'</span>' +
+					      ' </a></div>';
+					} else{
+						listaCarpetaHtml += '<div class="item-list carpeta-item"><div name="'+v.nomCarpeta+'" class="carpeta-dragdrop" id="car_'+v.codCarpeta+'" ></div><a href="javascript:void(0)" name="'+v.nomCarpeta+'" class="list-group-item link-carpeta no-border-radius" onclick="fListarNotiMen(\'\',\''+v.codCarpeta+'\',\'\',1,\'list\',\'\',\'NADA\',true); mostrarMover(true);" data-toggle="offcanvas">' +
+						  ' <i class="fa fa-envelope-o"></i>'+v.nomCarpeta+' <span class="num-item">'+cant+'</span>' +
+					      ' </a>' +
+					      '<div class="dropdown pull-right navbar-right">' +
+					      '<button id="opt_'+v.codCarpeta+'" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="caret"></span></button>' +
+					      '<ul class="dropdown-menu" aria-labelledby="opt_'+v.codCarpeta+'">' +
+					      '<li><a href="#" data-toggle="modal" data-codigo_carpeta="'+v.codCarpeta+'"  data-nombre_carpeta="'+v.nomCarpeta+'"  data-target="#editCarpeta"><i class="fa fa-pencil"></i> Cambiar nombre</a></li>' +
+					      '<li><a href="#" data-toggle="modal" data-codigo_carpeta="'+v.codCarpeta+'"  data-nombre_carpeta="'+v.nomCarpeta+'"  data-target="#deleteCarpeta"><i class="fa fa-trash-o"></i> Eliminar carpeta</a></li>' +
+					      '</ul>' +
+					      '</div></div>';
+					}
+				});
+				listaMoverCarpeta += '<li role="separator" class="divider"></li>';
+				listaMoverCarpeta+='<li style="padding-left: 10px;" class="text-primary">Nueva Carpeta:</li>';
+				listaMoverCarpeta += '<li role="separator" class="divider"></li>';
+				listaMoverCarpeta+='<li><a href="javascript:void(0)" data-toggle="modal" data-target="#addCarpeta">Crear</a></li>';
+				$("#divMisCarpetas .list-group").html(listaCarpetaHtml);
+				$("#listMoverCarpetas").html(listaMoverCarpeta);
+				if(!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+					fDragAndDrop();
+				}	
+			}, null);
+		}
+		
+		function cargarEtiquetas(){
+			var htmlT = [];
+			 $.each(listEtiquetas,function(index,item){
+				 var tag = "<a id='Etiq_"+item.codEtiqueta+"' name='"+item.descEtiqueta+"' href='javascript:void(0)' onclick='fListarNotiMen(\"\",\"\","+item.codEtiqueta+",1,\"list\",\"\",\"NADA\",true); mostrarMover(false);' class='list-group-item link-carpeta no-border-radius' data-toggle='offcanvas'>";
+               		 tag+='<i class="fa fa-square" style="color:#'+item.colorEtiqueta+'"></i>';
+               		 tag+=item.descEtiqueta;
+
+				  if(item.cantEtiqueta > 0){
+					 tag+="<span class='num-item'> ("+item.cantEtiqueta+") </span>"; 
+	   			   }
+					
+				 tag+='</a>';
+				 htmlT.push(tag); 
+		     });
+
+		     $("#divMisEtiquetas .list-group").html(htmlT.join(''));
+		}
+		
+		function fListarNotiMen(tipo,codCarpeta,codEtiqueta,pag,cond,mensaje,tipoOrden,asynAjax){
+			firstLoadPage = true;
+			if(tipo == 1 || tipo == ""){
+           	 	if($("#aListNoti").hasClass("initPage")){
+  		    		$("#aListNoti").removeClass("initPage");
+  			    }   
+			}
+			tipo= (tipo=='?')?$("#idTipMenj").val():tipo;
+			codCarpeta= (codCarpeta=='?')?$("#idCodCarpeta").val():codCarpeta;
+			codEtiqueta= (codEtiqueta=='?')?$("#idCodEtiqueta").val():codEtiqueta;
+			
+			$("#idTipMenj").val(tipo);
+            $("#idCodCarpeta").val(codCarpeta);
+            $("#idCodEtiqueta").val(codEtiqueta);
+            $("#idTipoOrden").val(tipoOrden);
+			
+			var isBuscaByAsunto = $("#idBuscarAsunto").val();
+            if(isBuscaByAsunto == "false"){
+            	$("#inputFiltro").val("");
+            	$("#inputFiltro").focus();
+            	$('#inputFiltro:focus').blur()
+            }else{
+            	$("#idBuscarAsunto").val("false");
+	        }
+			//para el filtro
+            des_asunto = $.trim($("#inputFiltro").val()) == 'Buscar por asunto'?'':$("#inputFiltro").val();
+            $.ajax({
+                url: VAR_CONTEXT+"/listNotiMenPag",
+                dataType: "json",
+                async : false,
+                cache : false,
+                headers: {'X-Ruc': $('meta[name="meta-token"]').attr('content')},
+                contentType: "application/x-www-form-urlencoded;charset=UTF-8",
+                data : {
+                	tipoMsj   : tipo,
+                	codCarpeta  : codCarpeta,
+                	codEtiqueta : codEtiqueta,
+                	page : pag,
+                	des_asunto : des_asunto,
+                	codMensaje : mensaje,
+                	tipoOrden : tipoOrden
+                }
+            }).done(function(response) {
+				var items = [];
+				fResetDetalle();
+				
+    			$.each(response.rows, function(i,v){
+    				if (tipoOrden == 'TODOS') {
+    					flagSeleccionarChecks = true;
+    				} else if (tipoOrden == 'NADA') {
+    					flagSeleccionarChecks = false;
+    				} else if(tipoOrden == 'LEIDOS' && v.indEstado != 0) {
+    					flagSeleccionarChecks = true;
+    				} else if(tipoOrden == 'NO_LEIDOS' && v.indEstado == 0) {
+    					flagSeleccionarChecks = true;
+    				} else if(tipoOrden == 'DESTACADOS' && v.indDesta == 1) {
+    					flagSeleccionarChecks = true;
+    				} else if(tipoOrden == 'SIN_DESTACAR' && v.indDesta != 1) {
+    					flagSeleccionarChecks = true;
+    				} else if(tipoOrden == 'MUY_URGENTES' && v.indUrg == 1) {
+    					flagSeleccionarChecks = true;
+    				} else if(tipoOrden == 'NO_MUY_URGENTES' && v.indUrg != 1) {
+    					flagSeleccionarChecks = true;
+    				}
+    				var row = cargarMensaje(v);
+    				items.push(row);
+        			flagSeleccionarChecks = false;
+    			});
+    			$('#listaMensajes').html(items.join(''));
+    			fChangeDescPag(response);
+    			if (cond=="list") {
+            		$('#pagi').bootpag({
+			            total: response.total,
+			            maxVisible: 0,
+			            page: 1,
+			            href: "#pro-page-{{number}}",
+			            leaps: false   
+			     	});
+            		if(parseInt(response.records) < 26){
+            			$(".lastCorreo").hide();
+            			$(".nextCorreo").hide();
+            		} else {
+            			$(".lastCorreo").show();
+            			$(".nextCorreo").show();
+            		}
+ 				}
+   				$('.row-offcanvas-inside').addClass('active');
+   				fGetDetalleOnClick();
+    			fSelectedOptionFirst();
+    			if($("#idCodEtiqueta").val() == ""){
+    				if(!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+    					fDragAndDrop();
+    				}
+	            }
+            }).fail(function( jqXHR, textStatus, errorThrown ) {
+                alert( "error listado notificacion: "+errorThrown +", "+jqXHR+","+textStatus);
+  			});
+            actualizarBotonEliminar();
+            listarAlertas();
+		}
+		
+		function actualizarBotonEliminar(){
+			var boton = '<button type="button"  onclick="fEliminarMensajes();" style="font-size: 18px; margin-top: 5px" class="btn btn-sm pull-left"><i class="fa fa-trash-o "></i></button>';
+			if($("#idTipMenj").val()=='1'){
+				$("#eliminarMensaje").html(boton);
+			}else{
+				$("#eliminarMensaje").html("");
+			}
+		}
+		
+		function fEliminarMensajes(){
+			var params = new Object();
+			$dvEmails = $("#listaMensajes");
+			var mensajeAlerta="";
+			var size = $($dvEmails).find(".SelectItemMail").length;
+			
+			if(size == 0){
+				mensajeAlerta= "Debe seleccionar al menos 1 mensaje.";
+				dialogAlert(mensajeAlerta, null);
+				return;
+			}else if(size == 1){
+				mensajeAlerta= "&iquest;Est&aacute; seguro de querer eliminar el mensaje actual?";
+				params["cod_mensajes"] = $("#idCodigoDetalle").val();
+			}else{
+		    	mensajeAlerta= "&iquest;Est&aacute; seguro de querer eliminar los mensajes seleccionados?";
+				params["cod_mensajes"] = fGetMessages();
+			}
+			
+			params["mensajes_leidos"] = fGetMensajesLeidos();
+			dialogConfirm(mensajeAlerta, function(){
+				$.ajax({
+					url: VAR_CONTEXT+"/ajax/eliminarMensajes",
+					dataType: "json",
+					async : false,
+					headers: {'X-Ruc': $('meta[name="meta-token"]').attr('content')},
+					cache : false,
+					data : params
+				}).done(function(data) {
+					fResetDetalle();
+					cargarCarpetas();
+					
+					fListarNotiMen($("#idTipMenj").val(),$("#idCodCarpeta").val(),"",1,"list","","NADA",true);
+
+					dialogInfo(data.content, null);
+					
+				}).error(function() {
+					bootbox.alert("Error en la transacci&oacute;n.");
+				});
+			}, null);
+		}
+		
+		function fResetDetalle(){
+		     $("#idCodigoDetalle").val("");
+		     $("#idTitleDetalle").text("");
+		     $("#idFechaDetalle").text("");
+				 $("#idArchAdjunto").hide(); 
+				 $("#listArchivosAdjuntos").html("");
+				$("#divArchivosAdjuntos").hide();
+					$("#detalleOpciones").hide();
+			$("#detallePanel").hide();
+			 $(".contenedor-correo").html("");
+			 //PAS20181U210200037:CSP-Inicio
+			 $(".contenedor-correo").show();
+			 $(".contenedor-plataforma").html("");
+			 //PAS20181U210200037:CSP-Fin
+		}
+		
+		function fGetMensajesLeidos() {
+			var leidos = 0;
+			$($dvEmails).find(".SelectItemMail").each(function(index,$item){
+				var tagLeido = $(this).find("input#idLeido").val();
+				if (tagLeido=="1") {
+					leidos++;	
+				}
+			});
+			
+			return leidos;
+		}
+		
+		function fSelectedOptionFirst(){
+			var $liFirst = $("#listaMensajes").find(".linkMensaje").eq(0);
+			$liFirst.trigger("click");
+		}
+		
+		function cargarMensaje(row){
+			var html = '';
+			html += '<li id="'+row.codMensaje+'" class="msj_nuevo list-group-item no-border-radius ' + ((flagSeleccionarChecks)?'SelectItemMail':'') + '">' + 
+						'<input type="hidden" id="idLeido" value="'+row.indEstado+'">'+
+						'<input type="hidden" id="idDestacado" value="'+row.indDesta+'">'+
+						'<input type="hidden" id="idUrgente" value="'+row.indUrg+'">'+
+						'<input type="checkbox" ' + ((flagSeleccionarChecks)?'checked':'') + ' name="checkMensaje" class="checkMensaje" />' + 
+					'<a href="#" class="linkMensaje text-muted" role="button">'+row.desAsunto+'</a>' + 
+					'<div class="clearfix separate">' + 
+						'<small class="text-muted fecPublica">'+row.fecPublica+'</small>';
+			if (row.cantidadArchAdj > 0) {
+				html+='<i style="font-size: 18px" class="fa fa-paperclip pull-right"></i>';
+	    	} 
+			html += '</div>' + 
+					'<div class="clearfix">';
+			var etiqueta = fGetEtiquetaById(row.codEtiqueta);
+			if (row.codEtiqueta=="10") {//Valores 
+				html+='<span class="label tag valores" style="color:#fff; background:#ce0d0e">'+etiqueta+'</span>';
+			}else if (row.codEtiqueta=="11") {//Resoluciones de Cobranza  
+				html+='<span class="label tag resoluciones" style="color:#fff; background:#ff9200">'+etiqueta+'</span>';
+			}else if (row.codEtiqueta=="12") {//Resoluciones de Fraccionamiento   
+				html+='<span class="label tag fraccionamiento" style="color:#fff; background:#00afff">'+etiqueta+'</span>';
+			}else if (row.codEtiqueta=="13") {//Resoluciones No contenciosas  
+				html+='<span class="label tag resoluciones-no" style="color:#fff; background:#89bd12">'+etiqueta+'</span>';
+			}else if (row.codEtiqueta=="14") {//Fiscalizacion 
+				html+='<span class="label tag fiscalizacion" style="color:#fff; background:#00b27e">'+etiqueta+'</span>';
+			}else if (row.codEtiqueta=="15") { 
+				html+='<span class="label tag comunicacion" style="color:#fff; background:#ff4546">'+etiqueta+'</span>';
+			}else if (row.codEtiqueta=="16") { //Aviso
+				html+='<span class="label tag aviso" style="color:#fff; background:#d45aed">'+etiqueta+'</span>';
+			}
+			html += '<a id="f'+row.codMensaje+'" href="javascript:void(0)"  class="fa fa-star pull-right social-iconos _F_A_V_O_R_I_T" onclick="actualizarFavorito(this,'+row.codMensaje+');"></a>' + 
+						'<a id="u'+row.codMensaje+'" href="javascript:void(0)"  class="fa fa-flag pull-right social-iconos _I_M_P_O_R_T" onclick="actualizarUrgente(this,'+row.codMensaje+');"></a>' + 
+					'</div>' + 
+				'</li>';
+			if(row.indDesta == 1){
+				html = html.replace("_F_A_V_O_R_I_T","active-btn");
+			}else{
+				html = html.replace("_F_A_V_O_R_I_T","");
+			}if(row.indUrg == 1){
+				html = html.replace("_I_M_P_O_R_T","active-btn");
+			}else{
+				html = html.replace("_I_M_P_O_R_T","");
+			}
+			if (row.indEstado != 0){
+				html = html.replace("msj_nuevo","");
+			}
+			return html;
+		}
+		
+		function getMapToDataSet(parentFunction, params){
+			$.ajax({
+		        url: VAR_CONTEXT+"/ajax/listarCarpetas",
+		        dataType: "json",
+		        headers: {'X-Ruc': $('meta[name="meta-token"]').attr('content')},
+		        async : false,
+				cache : false,
+		        data : params
+		    }).done(function(data) {		    	
+		    	parentFunction(data);
+		    });
+		}
+		
+		function fGetEtiquetaById(codigoEtiqueta){
+			 var result="";
+			 $.each(listEtiquetas,function(index,item){
+                 if(codigoEtiqueta==item.codEtiqueta){
+               	  result=item.descEtiqueta;
+               	  return false;
+                 }    
+		     });
+		     return result;
+		}
+		
+		function actualizarUrgente(object,idParent){
+			var hasClazzActive = $("#"+idParent).hasClass("selected");
+			var object2 = null;
+			if(hasClazzActive || idParent == null){
+				var codigo = '';
+				var flag=0;
+				if($(object).hasClass("active-btn")){
+					flag=0;
+				} else {
+					flag=1; 
+				}
+				if(idParent == null){
+			 		codigo = $("#idCodigoDetalle").val();
+				 	object2= $("#u"+codigo);
+				 	$(object2).removeClass("active-btn");
+			 	} else {
+			 		codigo = $(object).prop("id").substring(1);
+			 	}
+				$(object).removeClass("active-btn");
+				$.ajax({
+					url: VAR_CONTEXT+"/actualizarEstado",
+					type: "POST",
+					dataType: "json",
+					headers: {'X-Ruc': $('meta[name="meta-token"]').attr('content')},
+					async : false,
+					cache : false,
+					data : {
+						tipoOperacion : 'urgente',
+						ind : flag,
+						codMensaje : codigo
+					}
+	           }).done(function(respuesta) {
+					if(respuesta==1){
+						$("#"+codigo).find("#idUrgente").val(flag);
+       					if(flag==1){
+			        		$(object).addClass("active-btn");
+			        		if(idParent == null){
+			        			$(object2).addClass("active-btn");
+			        		} else {
+			        			$("#idImportanteDetalle").addClass("active-btn");
+			        		}
+			        	}else{
+			        		if(idParent != null){
+			        			$("#idImportanteDetalle").removeClass("active-btn");
+			        		}
+	  					}
+					}
+	           }).fail(function( jqXHR, textStatus, errorThrown ) {
+                   alert( "error actualizarUrgente: "+errorThrown +", "+jqXHR+","+textStatus);
+				});
+			}
+		}
+		
+		function listarAlertas(){
+			$.ajax({
+                url: VAR_CONTEXT+"/consultarAlertas",
+                type: "POST",
+                headers: {'X-Ruc': $('meta[name="meta-token"]').attr('content')},
+                async : false,
+                cache : false,
+                dataType: "json"
+        	}).done(function(respuesta) {
+             	var listaRpta = respuesta.listaAlertas;
+             	var tamano = listaRpta.length;
+             	$("#dpAlertas .badge").text(tamano);
+             	cargarAlertas(listaRpta);        		
+        	}).fail(function( jqXHR, textStatus, errorThrown ) {
+                alert( "error listarAlertas: "+errorThrown +", "+jqXHR+","+textStatus);
+			});
+		}
+		
+		function cargarAlertas(lista){
+			$("#listAlertas").html("");
+			var strHtml = '';
+			$.each(lista, function(i,alerta){
+				strHtml += '<li style="border-bottom: 1px solid #ccc; padding-top: 10px; padding-bottom: 10px;">';
+				strHtml += '<a style="white-space: normal; font-size: 12px;" id="f1-'+alerta.codMens+'" href="javascript:void(0)" onclick="fListarNotiMen(\'\',\'\',\''+alerta.codEtiqueta+'\',1,\'list\','+alerta.codMens+',\'NADA\',true);">'+ alerta.descTipDocumento +' <span class="time">Primer control de lectura -'+alerta.feclectura1+'</span></a>';
+				strHtml += '<a style="white-space: normal; font-size: 12px;" id="f2-'+alerta.codMens+'" href="javascript:void(0)" onclick="fListarNotiMen(\'\',\'\',\''+alerta.codEtiqueta+'\',1,\'list\','+alerta.codMens+',\'NADA\',true);">'+ alerta.descTipDocumento +' <span class="time">Segundo control de lectura -'+alerta.feclectura2+'</span></a>';
+				strHtml += '</li>';
+			});
+			if(lista.length == 0){
+				strHtml = '<li class="text-center">No tiene alertas</li>';
+			}
+			$("#listAlertas").html(strHtml);
+		}
+		
+	    function buscarAsunto(){
+	    	$("#idBuscarAsunto").val("true");
+	    	fListarNotiMen('?','?','?',1,'list','','NADA',true);
+	    }
+		function buscarAsuntoMovil(){
+	    	$("#idBuscarAsunto").val("true");
+	    	$("#inputFiltro").val($("#inputFiltroMovil").val());
+	    	fListarNotiMen('?','?','?',1,'list','','NADA',true);
+		}
+		function actualizarFavorito(object,idParent){
+    	  	var hasClazzActive = $("#"+idParent).hasClass("selected");
+    	  	var object2 = null;
+    	  	if(hasClazzActive || idParent == null){
+	    	 	var codigo = '';
+				var flag=0;
+				if($(object).hasClass("active-btn")){
+					flag=0;
+	   		 	}else{
+					flag=1;
+	   		 	}
+			 	$(object).removeClass("active-btn");
+			 	if(idParent == null){
+			 		codigo = $("#idCodigoDetalle").val();
+				 	object2= $("#f"+codigo);
+				 	$(object2).removeClass("active-btn");
+			 	} else {
+			 		codigo = $(object).prop("id").substring(1);
+			 	}
+	    	 	$.ajax({
+					url: VAR_CONTEXT+"/actualizarEstado",
+					type: "POST",
+					dataType: "json",
+					headers: {'X-Ruc': $('meta[name="meta-token"]').attr('content')},
+					async : false,
+					cache : false,
+					data : {
+                   		tipoOperacion : 'destacado',
+	                   	ind : flag,
+	                   	codMensaje : codigo
+                   	}
+				}).done(function(respuesta) {
+		        	if(respuesta==1){
+						$("#"+codigo).find("#idDestacado").val(flag);
+			        	if(flag==1){
+		        			$(object).addClass("active-btn");
+			        		if(idParent == null){
+			        			$(object2).addClass("active-btn");
+			        		} else {
+			        			$("#idFavoritoDetalle").addClass("active-btn");
+			        		}
+	       	         	}else{
+			        		if(idParent != null){
+			        			$("#idFavoritoDetalle").removeClass("active-btn");
+			        		}
+	             	  	}
+	           		} else {
+	           			alert("Ocurrió un error, vuelva a intentarlo más tarde.");
+	           		}
+				}).fail(function( jqXHR, textStatus, errorThrown ) {
+                    alert( "error actualizarFavorito: "+errorThrown +", "+jqXHR+","+textStatus);
+ 				});
+			}	
+		}
+		
+		//MOVER MENSAJES
+		function fMoverMensajes(codigo, nombre){
+			var params = new Object();
+			params['cod_carpeta']=codigo;
+			params['nom_carpeta']=nombre;
+			var CODIGO_ETIQUETA = "";
+			$dvEmails = $("#listaMensajes");
+			
+			if($($dvEmails).find(".SelectItemMail").length>0){
+				params["cod_mensajes"] = fGetMessages();
+				CODIGO_ETIQUETA = $.trim($($dvEmails).find(".SelectItemMail").data("etiqueta"));	
+			}else{
+				params["cod_mensajes"] = $("#idCodigoDetalle").val();		
+				CODIGO_ETIQUETA = $.trim($($dvEmails).find(".selected").data("etiqueta"));	
+			}
+			
+			params['tipoMsj']= $("#idTipMenj").val();
+			
+			var CODIGO_CARPETA_ORIGEN = $("#idCodCarpeta").val();
+			var CODIGO_CARPETA_OP_DEFAULT = "03";
+			var CODIGO_CARPETA_RC_DEFAULT = "04";
+				
+		    if( (params.cod_carpeta == CODIGO_CARPETA_OP_DEFAULT || params.cod_carpeta == CODIGO_CARPETA_RC_DEFAULT || CODIGO_ETIQUETA == "10") ){
+		    	if( (CODIGO_CARPETA_ORIGEN == "00" || CODIGO_CARPETA_ORIGEN == "" || CODIGO_ETIQUETA == "10") ){
+		    		dialogAlert("No se permite copiar el (los) mensaje(s) a esta carpeta.", null);
+				}else{
+					dialogAlert("No se permite mover el (los) mensaje(s) a esta carpeta.", null);
+				}
+			}else{
+				$.ajax({
+					url: VAR_CONTEXT+"/ajax/moverACarpeta",
+					dataType: "json",
+					headers: {'X-Ruc': $('meta[name="meta-token"]').attr('content')},
+					async : false,
+					cache : false,
+					data : params
+				}).done(function(data) {
+				    var content = data.content;
+					if(data.type == "SUCCESS"){
+						if(content!="0"){
+							cargarCarpetas();
+							fListarNotiMen('?','?',"",1,"list","","NADA",true);
+							dialogInfo(data.content, null);
+						}
+				    }else{
+				    	dialogAlert(data.content, null);
+					}
+				
+				}).error(function() {
+					dialogAlert("FATAL AJAX ERROR", null);
+				});
+			}
+		}
+		
+		function modificarCarpeta(){
+			var reg = /[^A-Za-z0-9 ]/;
+			var params = new Object();
+			params["cod_carpeta"] = $("#edit_cod_carpeta").val();
+			params["nom_carpeta"] = $.trim($("#edit_nom_carpeta").val());
+			
+			if(params.nom_carpeta == ""){
+				dialogInfo("Ingrese el nombre de la carpeta", null);
+			 	$("#edit_nom_carpeta").val("");
+			} else if(reg.test(params.nom_carpeta)){
+				dialogInfo("El nombre de la carpeta debe contener solo letras y n&uacute;meros", null);
+				$("#txtNombreCarpeta").val("");
+			} else{
+			
+				$.ajax({
+					url: VAR_CONTEXT+"/ajax/modificarCarpeta",
+					dataType: "json",
+					headers: {'X-Ruc': $('meta[name="meta-token"]').attr('content')},
+					async : false,
+					cache : false,
+					data : params
+				}).done(function(data) {
+					cargarCarpetas();
+					dialogInfo(data.content, null);
+					if(data.type=="SUCCESS"){
+						$('#editCarpeta').modal('hide');
+					}
+				}).error(function() {
+					dialogInfo("FATAL AJAX ERROR", null);
+				});
+			}
+		}
+		function cancelarModificarCarpeta(){
+			$('#editCarpeta').modal('hide');
+		}
+		function eliminarCarpeta(){
+			var params = new Object();
+			params["cod_carpeta"] = $("#delete_cod_carpeta").val();
+			$.ajax({
+		        url: VAR_CONTEXT+"/ajax/eliminarCarpeta",
+		        dataType: "json",
+		        headers: {'X-Ruc': $('meta[name="meta-token"]').attr('content')},
+		        async : false,
+				cache : false,
+		        data : params
+		    }).done(function(data) {
+		    	cargarCarpetas();
+				dialogInfo(data.content, null);
+				if(data.type=="SUCCESS"){
+					$('#deleteCarpeta').modal('hide');
+				}
+				$(".wrap-correo").hide();
+				$("#dvEmails").hide();
+				$("#aListNoti").trigger("click");
+		    }).error(function() {
+		    	dialogInfo("FATAL AJAX ERROR", null);
+			});
+		}
+
+		function cancelarEliminarCarpeta(){
+			$('#deleteCarpeta').modal('hide');
+		}
+		
+		function crearCarpeta(){
+			var reg = /[^A-Za-z0-9 ]/;
+			var params = new Object();
+			params["nom_carpeta"] = $.trim($("#txtNombreCarpeta").val());
+			params["tipoMsj"] = $("#idTipMenj").val();
+
+			if(params.nom_carpeta == ""){
+				dialogInfo("Ingrese el nombre de la carpeta", null);
+				 $("#txtNombreCarpeta").val("");
+			} else if(reg.test(params.nom_carpeta)){
+				dialogInfo("El nombre de la carpeta debe contener solo letras y n&uacute;meros", null);
+				 $("#txtNombreCarpeta").val("");
+			} else{
+				$.ajax({
+					  url: VAR_CONTEXT+"/ajax/crearCarpeta",
+					  dataType: "json",
+					  headers: {'X-Ruc': $('meta[name="meta-token"]').attr('content')},
+					  async : false,
+					  cache : false,
+					  data : params
+			   }).done(function(data) {
+				   cargarCarpetas();
+				   dialogInfo(data.content, null);
+					if(data.type=="SUCCESS"){
+						$("#txtNombreCarpeta").val("");
+						$('#addCarpeta').modal('hide');
+					} 
+			   }).error(function() {
+				   dialogInfo("FATAL AJAX ERROR", null);
+				});
+		   }
+		}
+
+
+		function cancelarCrearCarpeta(){
+			$("#txtNombreCarpeta").val("");
+			$('#addCarpeta').modal('hide');
+		}
+	
+		
+		function fDragAndDrop(){
+			$dvEmails = $("#listaMensajes");
+			$misCarpetas = $(".carpeta-dragdrop");
+			$dvEmails.on("click", ".checkMensaje", function(){
+				if ($(this).is(":checked")){
+					$(this).closest("li").addClass("SelectItemMail");		 
+				}else{
+					$(this).closest("li").removeClass("SelectItemMail");				 
+				}
+			});
+
+			$("li",$dvEmails).draggable({
+				cursor: "move",
+				revert: "invalid",
+				appendTo: "body",
+				helper: "clone",
+				cursorAt: { top: 40, left: -5 },
+				start: function( event, ui ) {
+					$(".carpeta-dragdrop").show();
+					$(".carpeta-item").css("overflow", "hidden");
+					var length= $($dvEmails).find(".SelectItemMail").length;
+					var tipoMensj = $("#idTipMenj").val();
+					var accion = "Mover ";
+					if(tipoMensj != ""){
+					     accion = "Copiar ";  
+					}
+					
+					if (length < 2){
+						$(ui.helper).html(accion+"1 mensaje"); 
+						$(this).addClass("SelectItemMail");
+					}else{
+						$(ui.helper).html(accion + length +" mensajes"); 						
+					}
+					$(ui.helper).addClass("removeBoxDrag");              		
+				},
+				stop: function( event, ui ) {
+					$(this).removeClass("SelectItemMail");
+
+					$(".carpeta-dragdrop").hide();
+					$(".carpeta-item").css("overflow", "visible");
+					$( ".ui-draggable" ).each(function( index ) {
+						if($( this ).find("input").is(":checked")){
+							$( this ).addClass("SelectItemMail");
+						}
+					});
+					
+					$(ui.helper).removeClass('removeBoxDrag'); 
+				}
+			});
+	
+			$misCarpetas.droppable({
+				hoverClass: "ui-state-bandeja",
+				drop: function( event, ui ) {
+					
+					var params = new Object();
+					params['cod_carpeta']=$(this).attr("id").substring(4);
+					params['nom_carpeta']=$(this).attr("name");
+					params['cod_mensajes']=fGetMessages();
+					params['tipoMsj']= $("#idTipMenj").val();
+
+					$(".carpeta-dragdrop").hide();
+					$(".carpeta-item").css("overflow", "visible");
+					var CODIGO_CARPETA_ORIGEN = $("#idCodCarpeta").val();
+					var CODIGO_CARPETA_OP_DEFAULT = "03";
+					var CODIGO_CARPETA_RC_DEFAULT = "04";
+					var CODIGO_ETIQUETA = $.trim($($dvEmails).find(".SelectItemMail").data("etiqueta"));
+				    if( (params.cod_carpeta == CODIGO_CARPETA_OP_DEFAULT || params.cod_carpeta == CODIGO_CARPETA_RC_DEFAULT || CODIGO_ETIQUETA == "10") ){
+					
+						if( (CODIGO_CARPETA_ORIGEN == "00" || CODIGO_CARPETA_ORIGEN == "" || CODIGO_ETIQUETA == "10") ){
+							dialogAlert("No se permite copiar el (los) mensaje(s) a esta carpeta.", null);
+						}else{
+							dialogAlert("No se permite mover el (los) mensaje(s) a esta carpeta.", null);
+						}
+					}else{
+						$.ajax({
+							url: VAR_CONTEXT+"/ajax/moverACarpeta",
+							dataType: "json",
+							headers: {'X-Ruc': $('meta[name="meta-token"]').attr('content')},
+							async : false,
+							cache : false,
+							data : params
+						}).done(function(data) {
+						    var content = data.content;
+							if(data.type == "SUCCESS"){
+								if(content!="0"){
+									cargarCarpetas();
+									fListarNotiMen('?','?','?',1,"list","","NADA",true);
+									dialogAlert(data.content, null);
+								}
+							}else{
+								dialogAlert(data.content, null);
+							}
+						}).error(function() {
+							alert("FATAL AJAX ERROR");
+						});
+					}		
+				}
+			});
+		}
+		
+		function fGetMessages() {
+			var result = "";
+			$($dvEmails).find(".SelectItemMail").each(function(index,$item){
+				if($.trim($(this).data("etiqueta")) != "10")
+					result+=$($item).attr("id")+",";
+			});
+			
+			return result.substring(0, result.length - 1);
+		}
+		
+		function fPagination(){
+				total: 0,
+			$('#pagi').bootpag({
+				maxVisible: 0,
+				href: "#pro-page-{{number}}",
+				leaps: false      
+		     }).on("page", function(event, numPage){
+				var tipMnj = $("#idTipMenj").val();
+				var codCarpeta = $("#idCodCarpeta").val();
+				var codEtiqueta  = $("#idCodEtiqueta").val();
+				$("#idBuscarAsunto").val("true");
+				fListarNotiMen(tipMnj,codCarpeta,codEtiqueta,numPage,"page","",'NADA',true);
+			});
+		}
+		
+		function seleccionarChecks(tipo){
+			$("#idTipoOrden").val(tipo);
+			fListarNotiMen("?","?","?",1,'list','',tipo,true);
+		}
+		
+		function fChangeDescPag(response){
+        	var desc = response.startPage+"-"+response.endPage+" de "+response.records;
+            $(".cant-correo").text(desc);
+        }
+
+		function fImprimir(){
+			var wo = window.open('', '', 'width=770,height=430,maximize=yes,status=yes,resizable=yes,scrollbars=yes');
+			var elem = $("#contenedorMensaje");
+			if (optionPrint == 1) {
+				wo.document.write(elem.html());
+			} else if(optionPrint == 2){
+				wo.document.write(elem.contents().find("html").html());
+			} else if(optionPrint == 3) {
+				wo.document.write(elem.contents().find("html").html());
+			}
+			wo.document.title = "Visor";
+			wo.document.close();
+			wo.focus();
+			wo.print();
+			wo.close();
+			return true;
+	    }
+		
+		function fGetCountByTipo(codigo,tipo,count){
+			if(tipo == TIPO_NOTI_MEN){
+				if(codigo=="01" || codigo=="1"){
+		    		if(count == 0){
+		    		   $(".count-mensj").text("");
+				    }else{
+		    		   $(".count-mensj").text("("+count+")");
+				    } 
+		        }else if(codigo=="02" || codigo=="2"){
+		        	if(count == 0){
+		        	  $(".count-noti").text("");
+		        	}else{
+		        	  $(".count-noti").text("("+count+")");
+			        } 
+		        }
+			}else if(tipo == TIPO_CARPETA){
+				if(codigo != "00"){
+					if(count == 0){
+			    		 $("#car_"+codigo).find(".num-item").text("");
+					 }else{
+						 $("#car_"+codigo).find(".num-item").text(" ("+count+")");
+					 } 
+				}
+			}else if(tipo == TIPO_ETIQUETA){
+				if(codigo != "00"){
+					if(count == 0){
+		    			 $("#Etiq_"+codigo).find(".num-item").text("");
+				 	}else{
+						 $("#Etiq_"+codigo).find(".num-item").text(" ("+count+")");
+				 	}
+				}	 
+		     }
+		}
+		
+		function validCaracter(evt,regex) {
+	        var theEvent = evt || window.event;
+	        var key = theEvent.keyCode || theEvent.which;
+	        var keychar = String.fromCharCode(key);
+	        var k = evt.key;
+	        
+	        if($.inArray(k, ["Home","Right","Left","End","ArrowLeft","ArrowRight","ArrowDown","ArrowUp"]) != -1){
+	        	return true; 
+	        }
+	        
+	        var keycheck = regex;
+	        if (!(key == 8 || key == 27 )) {//|| key == 46
+	            if (!keycheck.test(keychar)) {
+	                theEvent.returnValue = false;
+	                if (theEvent.preventDefault) theEvent.preventDefault();
+	            }
+	        }
+	    }
+
+		function mostrarMover(flag) {
+	        if (flag) {
+	        	$(".liMoverCarpeta").show();
+	        }else{
+	        	$(".liMoverCarpeta").hide();
+	        }
+	    }
+
+		 //consultarNotificaciones();
+		initComponentes();
+
+		
+		$(window).on("load", function(){
+			
+  			$(document).on("click", "#verCarpetas", function(e){
+				$('.row-offcanvas-inside').toggleClass('active');
+				refrescaColumna();
+  			});
+			$(document).on("click", "#verMensajes", function(e){
+    			$('.row-offcanvas').toggleClass('active');
+				refrescaColumna();
+			});
+  			$(".row-scroll").css("height",$(window).height() - 50);
+  			if (parseInt(frameAncho) > 0 && parseInt(frameAlto) > 0) {
+  				var anchoModal = parseInt(frameAncho) - 10;
+  				var altoFrame = parseInt(frameAlto) - 50;
+  				document.body.style.width = frameAncho+"px";
+  				$(".row-scroll").css("height",altoFrame);
+				document.getElementById('editCarpeta').style.width = anchoModal+'px';
+				document.getElementById('deleteCarpeta').style.width = anchoModal+'px';
+				document.getElementById('idModalMensaje').style.width = anchoModal+'px';
+  			}else if(/iPhone|iPad|iPod/i.test(navigator.userAgent) ) {
+  				var anchoModal = parseInt(window.innerWidth) - 10;
+				document.getElementById('editCarpeta').style.width = anchoModal+'px';
+				document.getElementById('deleteCarpeta').style.width = anchoModal+'px';
+				document.getElementById('idModalMensaje').style.width = anchoModal+'px';
+            }
+            
+			setTimeout(function(){ 
+				document.getElementById("divMisCarpetas").style.visibility = "visible";
+				document.getElementById("divMisEtiquetas").style.visibility = "visible";
+				document.body.style.visibility = "visible"; 
+			}, 700);
+  			
+		}).on("resize", function(){
+			$(".row-scroll").css("height",$(window).height() - 50);
+  			if (parseInt(frameAncho) > 0 && parseInt(frameAlto) > 0) {
+  				var anchoModal = parseInt(frameAncho) - 10;
+  				var altoFrame = parseInt(frameAlto) - 50;
+  				document.body.style.width = frameAncho+"px";
+  				$(".row-scroll").css("height",altoFrame);
+				document.getElementById('editCarpeta').style.width = anchoModal+'px';
+				document.getElementById('deleteCarpeta').style.width = anchoModal+'px';
+				document.getElementById('idModalMensaje').style.width = anchoModal+'px';
+  			}else if(/iPhone|iPad|iPod/i.test(navigator.userAgent) ) {
+  				var anchoModal = parseInt(window.innerWidth) - 10;
+				document.getElementById('editCarpeta').style.width = anchoModal+'px';
+				document.getElementById('deleteCarpeta').style.width = anchoModal+'px';
+				document.getElementById('idModalMensaje').style.width = anchoModal+'px';
+            }
+            
+			setTimeout(function(){ 
+				document.getElementById("divMisCarpetas").style.visibility = "visible";
+				document.getElementById("divMisEtiquetas").style.visibility = "visible";
+				document.body.style.visibility = "visible"; 
+			}, 700);
+
+		});	
+		
+		function refrescaColumna(){
+            try {
+                 if(!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+                 }else{
+                    $("#divColumnaSidebar").hide();                                          
+                    setTimeout(function(){ $("#divColumnaSidebar").show(); }, 25);
+                 }
+            }catch(err) {
+            }                                                                                            
+		}
+		
+		
+		
+		function consultarNotificaciones(){
+			$.ajax({
+                url: VAR_CONTEXT+"/consultarNotificaciones",
+                type: "POST",
+                headers: {'X-Ruc': $('meta[name="meta-token"]').attr('content')},
+                async : true,
+                cache : false,
+                dataType: "json"
+        	}).done(function(respuesta) {
+ 
+ 
+ 				console.log("response: " + respuesta)
+			     if (respuesta != null && respuesta.length > 0) {
+			       $.each(respuesta, function(index, item){
+					 
+				    fGetCountByTipo( item.cod_carpeta_agrupado, item.tipo, item.no_leido);
+				 	});
+			    }
+			    {
+			    	console.log("Contador ya actualizado.");
+			    }
+    
+    
+ 
+        		
+        		
+        		
+        	}).fail(function( jqXHR, textStatus, errorThrown ) {
+                alert( "error consultarNotificaciones: "+errorThrown +", "+jqXHR+","+textStatus);
+			});
+		}
+
+	</script>
+</body>
+</html>
