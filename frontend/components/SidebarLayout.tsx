@@ -614,7 +614,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           <DialogHeader>
             <DialogTitle className="text-base font-bold">Evaluación de Comprobante / Documento</DialogTitle>
             <DialogDescription className="text-xs">
-              Valide la conformidad contable y tributaria del documento adjunto (RF-C04).
+              Valide la conformidad contable y tributaria del documento adjunto.
             </DialogDescription>
           </DialogHeader>
 
@@ -701,7 +701,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
         </DialogContent>
       </Dialog>
 
-      {/* MODAL 3: VISOR DE DOCUMENTO (RF-C05) */}
+      {/* MODAL 3: VISOR DE DOCUMENTO */}
       <Dialog open={visorModalOpen} onOpenChange={setVisorModalOpen}>
         <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">
           <DialogHeader>
@@ -711,7 +711,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                   {docVisorNombre}
                 </DialogTitle>
                 <DialogDescription className="text-xs">
-                  Visor de documento contable en formato original (RF-C05)
+                  Visor de documento contable en formato original
                 </DialogDescription>
               </div>
               {docVisorId && (
@@ -761,23 +761,17 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                   <DialogTitle className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                     {clienteEnEdicion ? (
                       <>
-                        <span>Editar Cliente MYPE</span>
-                        <Badge variant="outline" className="text-[10px] font-mono border-blue-300 text-blue-700 dark:text-blue-400 bg-blue-50/50">
-                          {clienteEnEdicion.ruc}
-                        </Badge>
+                        <span>Editar Cliente</span>
                       </>
                     ) : (
-                      "Registrar Nuevo Cliente MYPE"
+                      "Registrar Nuevo Cliente"
                     )}
                   </DialogTitle>
-                  <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
-                    Administre la información comercial, datos de contacto y credenciales oficiales de SUNAT SOL en un solo formulario.
-                  </DialogDescription>
                 </div>
               </div>
 
               {/* Selector de Pestañas Unificadas */}
-              <div className="flex items-center gap-2 pt-2 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-4 pt-2 border-b border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setActiveClienteTab("DATOS")}
@@ -786,8 +780,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                     : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                     }`}
                 >
-                  <Building2 className="h-3.5 w-3.5" />
-                  <span>1. Datos de la Empresa</span>
+                  <span>Datos de la Empresa</span>
                 </button>
                 <button
                   type="button"
@@ -797,8 +790,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                     : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                     }`}
                 >
-                  <KeyRound className="h-3.5 w-3.5" />
-                  <span>2. Clave SOL & Conexión SUNAT</span>
+                  <span>Clave SOL</span>
                   {clienteEnEdicion?.sunat_estado_conexion === "CONECTADO" && (
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5" />
                   )}
@@ -823,29 +815,29 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
               {/* PESTAÑA 1: DATOS DE LA EMPRESA */}
               {activeClienteTab === "DATOS" && (
-                <div className="space-y-3 animate-fade-in">
+                <div className="space-y-3 pl-1 animate-fade-in">
                   <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
-                    <div className="sm:col-span-5 space-y-1">
+                    <div className="sm:col-span-6 space-y-1">
                       <Label htmlFor="regRuc" className="text-xs font-semibold">
-                        RUC (11 dígitos): <span className="text-red-500">*</span>
+                        RUC: <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="regRuc"
                         maxLength={11}
-                        placeholder="20601234567"
+                        placeholder="RUC"
                         value={nuevoRuc}
                         onChange={(e) => setNuevoRuc(e.target.value.replace(/\D/g, ""))}
                         className="text-xs h-8 font-mono"
                         required
                       />
                     </div>
-                    <div className="sm:col-span-7 space-y-1">
+                    <div className="sm:col-span-6 space-y-1">
                       <Label htmlFor="regRazon" className="text-xs font-semibold">
                         Razón Social: <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="regRazon"
-                        placeholder="Ej: Comercial Andina S.A.C."
+                        placeholder="Razón social"
                         value={nuevaRazonSocial}
                         onChange={(e) => setNuevaRazonSocial(e.target.value)}
                         className="text-xs h-8"
@@ -856,10 +848,10 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div className="space-y-1">
-                      <Label htmlFor="regNombreComercial" className="text-xs">Nombre Comercial (opcional):</Label>
+                      <Label htmlFor="regNombreComercial" className="text-xs">Nombre Comercial:</Label>
                       <Input
                         id="regNombreComercial"
-                        placeholder="Ej: Andina Market"
+                        placeholder="Nombre Comercial"
                         value={nuevoNombreComercial}
                         onChange={(e) => setNuevoNombreComercial(e.target.value)}
                         className="text-xs h-8"
@@ -885,10 +877,10 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div className="space-y-1">
-                      <Label htmlFor="regContacto" className="text-xs">Contacto / Representante:</Label>
+                      <Label htmlFor="regContacto" className="text-xs">Contacto:</Label>
                       <Input
                         id="regContacto"
-                        placeholder="Ej: Juan Pérez Morales"
+                        placeholder="Contacto"
                         value={nuevoContactoNombre}
                         onChange={(e) => setNuevoContactoNombre(e.target.value)}
                         className="text-xs h-8"
@@ -896,7 +888,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="regCelular" className="text-xs font-semibold">
-                        Celular WhatsApp: <span className="text-red-500">*</span>
+                        Celular: <span className="text-red-500">*</span>
                       </Label>
                       <div className="flex items-center gap-1">
                         <span className="h-8 px-2 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-500 text-xs flex items-center font-mono">
@@ -904,7 +896,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                         </span>
                         <Input
                           id="regCelular"
-                          placeholder="920843098"
+                          placeholder="Celular"
                           value={nuevoCelular}
                           onChange={(e) => setNuevoCelular(e.target.value.replace(/\D/g, ""))}
                           className="text-xs h-8 font-mono flex-1"
@@ -916,12 +908,12 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
                   <div className="space-y-1">
                     <Label htmlFor="regEmail" className="text-xs font-semibold">
-                      Correo Electrónico de Notificaciones: <span className="text-red-500">*</span>
+                      Correo: <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="regEmail"
                       type="email"
-                      placeholder="contacto@mype.pe"
+                      placeholder="Correo"
                       value={nuevoEmail}
                       onChange={(e) => setNuevoEmail(e.target.value)}
                       className="text-xs h-8"
@@ -933,7 +925,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                     <Label htmlFor="regDireccion" className="text-xs">Dirección Fiscal:</Label>
                     <Input
                       id="regDireccion"
-                      placeholder="Ej: Av. Las Begonias 450 Int. 201, San Isidro, Lima"
+                      placeholder="Dirección Fiscal"
                       value={nuevaDireccion}
                       onChange={(e) => setNuevaDireccion(e.target.value)}
                       className="text-xs h-8"
@@ -944,7 +936,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
               {/* PESTAÑA 2: CREDENCIALES SOL & CONEXIÓN SUNAT */}
               {activeClienteTab === "SUNAT" && (
-                <div className="space-y-3.5 animate-fade-in">
+                <div className="space-y-3.5 pl-1 animate-fade-in">
                   {/* Tarjeta de Estado de Conexión actual */}
                   <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="space-y-0.5">
@@ -995,7 +987,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                           title="Abrir sesión en SUNAT SOL"
                         >
                           <ExternalLink className="h-3 w-3" />
-                          <span>Autologin</span>
+                          <span>Login</span>
                         </Button>
                       )}
                     </div>
@@ -1009,12 +1001,11 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                       </Label>
                       <Input
                         id="regUsuarioSol"
-                        placeholder="Ej: MODDATOS"
+                        placeholder="Usuario SOL"
                         value={nuevoUsuarioSol}
                         onChange={(e) => setNuevoUsuarioSol(e.target.value.toUpperCase())}
-                        className="text-xs h-8 font-mono uppercase"
+                        className="text-xs h-8 font-mono"
                       />
-                      <p className="text-[10px] text-slate-400">Usuario principal o secundario SOL</p>
                     </div>
 
                     <div className="space-y-1">
@@ -1038,21 +1029,17 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                           {showClaveSol ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                         </button>
                       </div>
-                      <p className="text-[10px] text-slate-400">
-                        {clienteEnEdicion ? "Deje en blanco para conservar la clave actual" : "Contraseña de acceso a SUNAT"}
-                      </p>
                     </div>
                   </div>
 
                   {/* Campos Opcionales de API SUNAT */}
                   <div className="p-3 rounded-lg bg-slate-50/70 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 space-y-2">
-                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                      <Sparkles className="h-3.5 w-3.5 text-blue-500" />
-                      Credenciales API SUNAT / SIRE (Opcionales):
-                    </span>
+                    <b className="text-xs font-semibold dark:text-slate-400 flex items-center gap-1.5">
+                      Credenciales API SUNAT
+                    </b>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div className="space-y-1">
-                        <Label htmlFor="regSunatClientId" className="text-[10px] text-slate-500">Client ID:</Label>
+                        <Label htmlFor="regSunatClientId" className="text-xs font-semibold">Client ID:</Label>
                         <Input
                           id="regSunatClientId"
                           placeholder="client-id-sunat"
@@ -1062,7 +1049,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                         />
                       </div>
                       <div className="space-y-1">
-                        <Label htmlFor="regSunatClientSecret" className="text-[10px] text-slate-500">Client Secret:</Label>
+                        <Label htmlFor="regSunatClientSecret" className="text-xs font-semibold">Client Secret:</Label>
                         <Input
                           id="regSunatClientSecret"
                           type="password"
@@ -1088,7 +1075,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                 disabled={creandoCliente}
                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs cursor-pointer shadow-xs"
               >
-                {creandoCliente ? "Guardando..." : clienteEnEdicion ? "Actualizar Cliente" : "Registrar Cliente"}
+                {creandoCliente ? "Guardando..." : clienteEnEdicion ? "Actualizar" : "Registrar"}
               </Button>
             </DialogFooter>
           </form>

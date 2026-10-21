@@ -50,14 +50,13 @@ function LoginForm() {
 
     try {
       const data = await api.login(email, password);
-      // Redirigir según rol (RF-C01 Criterio 1)
+      // Redirigir según rol
       if (data.usuario.rol === "CONTADOR") {
         router.push("/contador");
       } else {
         router.push("/portal-cliente");
       }
     } catch (err: any) {
-      // RF-C01 Criterio 2
       setError(err.message || "Credenciales incorrectas. Verifique su correo o contraseña.");
     } finally {
       setLoading(false);
@@ -87,7 +86,6 @@ function LoginForm() {
   return (
     <div className="flex flex-col justify-center items-center min-h-[calc(100vh-8rem)] py-8 px-4">
       <div className="w-full max-w-md space-y-6">
-        {/* Banner de Timeout de Inactividad (RF-C01 Criterio 4) */}
         {isExpired && (
           <div className="flex items-start gap-3 p-3.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs animate-fade-in">
             <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
@@ -100,7 +98,6 @@ function LoginForm() {
           </div>
         )}
 
-        {/* Banner de Acceso No Autorizado (RF-C01 Criterio 3) */}
         {isUnauthorized && !isExpired && (
           <div className="flex items-start gap-3 p-3.5 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-900 dark:text-red-200 text-xs animate-fade-in">
             <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />

@@ -131,18 +131,17 @@ export function setSavedUser(user: Usuario) {
   }
 }
 
-// Control de timeout de inactividad de 45 minutos (RF-C01 Criterio 4)
 export function checkInactivityTimeout(): boolean {
   if (typeof window === "undefined") return false;
   const lastActivity = localStorage.getItem("contatask_last_activity");
   if (!lastActivity) return false;
-  
+
   const diffMinutes = (Date.now() - parseInt(lastActivity, 10)) / (1000 * 60);
   if (diffMinutes >= 45) {
     clearSession();
     return true; // Expiró
   }
-  
+
   // Actualizar marca de actividad
   localStorage.setItem("contatask_last_activity", Date.now().toString());
   return false;
@@ -157,7 +156,7 @@ async function request(endpoint: string, options: RequestInit = {}) {
 
   const token = getToken();
   const headers = new Headers(options.headers || {});
-  
+
   if (token && !headers.has("Authorization")) {
     headers.set("Authorization", `Bearer ${token}`);
   }
@@ -696,7 +695,6 @@ export const api = {
     return request(`/sunat/cronograma/ruc/${ruc}${qStr ? `?${qStr}` : ""}`);
   },
 
-  // SIRE (Sistema Integrado de Registros Electrónicos - RF-T01, RF-T02, RF-T03, RF-T04)
   getSirePropuesta: (clienteId: number | string, periodo: string, tipo: "RCE" | "RVIE" = "RCE"): Promise<{ success: boolean; propuesta: SirePropuesta; comprobantes: SireComprobante[]; metricas: SireMetricas }> =>
     request(`/sire/${clienteId}/propuesta?periodo=${periodo}&tipo=${tipo}`),
 
@@ -746,7 +744,6 @@ export const api = {
   getDescargaPlanoSireUrl: (clienteId: number | string, periodo: string, tipo: "RCE" | "RVIE" = "RCE"): string =>
     `${API_BASE_URL}/sire/${clienteId}/archivo-plano?periodo=${periodo}&tipo=${tipo}`,
 
-  // PLAME (Planilla Mensual Electrónica - Formulario 0601 - RF-T05)
   getPlamePeriodo: (clienteId: number | string, periodo: string): Promise<{ success: boolean; periodo: PlamePeriodo; trabajadores: PlameTrabajador[]; metricas: any }> =>
     request(`/plame/${clienteId}/periodo?periodo=${periodo}`),
 

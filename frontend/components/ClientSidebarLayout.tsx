@@ -384,7 +384,6 @@ export function ClientSidebarLayout({ children }: ClientSidebarLayoutProps) {
         </div>
       )}
 
-      {/* MODAL GLOBAL DE SUBIDA DE SUSTENTO (RF-C02) */}
       <Dialog open={uploadModalOpen} onOpenChange={setUploadModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -475,7 +474,6 @@ export function ClientSidebarLayout({ children }: ClientSidebarLayoutProps) {
         </DialogContent>
       </Dialog>
 
-      {/* MODAL GLOBAL DE VISUALIZACIÓN DE ARCHIVO (RF-C05) */}
       <Dialog open={visorModalOpen} onOpenChange={setVisorModalOpen}>
         <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">
           <DialogHeader>
@@ -485,7 +483,7 @@ export function ClientSidebarLayout({ children }: ClientSidebarLayoutProps) {
                   {docVisorNombre}
                 </DialogTitle>
                 <DialogDescription className="text-xs">
-                  Visor integrado de documento en formato original (RF-C05)
+                  Visor integrado de documento en formato original
                 </DialogDescription>
               </div>
               {docVisorId && (

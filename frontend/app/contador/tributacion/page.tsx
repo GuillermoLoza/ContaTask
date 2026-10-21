@@ -450,11 +450,10 @@ export default function ContadorTributacionPage() {
       <div className="flex border-b border-slate-200 dark:border-slate-800 gap-2">
         <button
           onClick={() => setActiveTab("sire")}
-          className={`flex items-center gap-2 px-5 py-3 font-semibold text-sm border-b-2 transition-all ${
-            activeTab === "sire"
+          className={`flex items-center gap-2 px-5 py-3 font-semibold text-sm border-b-2 transition-all ${activeTab === "sire"
               ? "border-blue-600 text-blue-600 dark:text-blue-400"
               : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
-          }`}
+            }`}
         >
           <FileSpreadsheet className="w-4 h-4" />
           SIRE: Compras y Ventas (RCE / RVIE)
@@ -462,11 +461,10 @@ export default function ContadorTributacionPage() {
 
         <button
           onClick={() => setActiveTab("liquidacion")}
-          className={`flex items-center gap-2 px-5 py-3 font-semibold text-sm border-b-2 transition-all ${
-            activeTab === "liquidacion"
+          className={`flex items-center gap-2 px-5 py-3 font-semibold text-sm border-b-2 transition-all ${activeTab === "liquidacion"
               ? "border-blue-600 text-blue-600 dark:text-blue-400"
               : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
-          }`}
+            }`}
         >
           <Calculator className="w-4 h-4" />
           Liquidación de Impuestos & NPS (Form. 621)
@@ -474,11 +472,10 @@ export default function ContadorTributacionPage() {
 
         <button
           onClick={() => setActiveTab("plame")}
-          className={`flex items-center gap-2 px-5 py-3 font-semibold text-sm border-b-2 transition-all ${
-            activeTab === "plame"
+          className={`flex items-center gap-2 px-5 py-3 font-semibold text-sm border-b-2 transition-all ${activeTab === "plame"
               ? "border-blue-600 text-blue-600 dark:text-blue-400"
               : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
-          }`}
+            }`}
         >
           <Users className="w-4 h-4" />
           Planilla Mensual PLAME (PDT 0601)
@@ -496,21 +493,19 @@ export default function ContadorTributacionPage() {
               <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 mr-2">Libro:</span>
               <button
                 onClick={() => setSireTipo("RCE")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-                  sireTipo === "RCE"
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${sireTipo === "RCE"
                     ? "bg-blue-600 text-white shadow-sm"
                     : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
-                }`}
+                  }`}
               >
                 RCE (Registro de Compras)
               </button>
               <button
                 onClick={() => setSireTipo("RVIE")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-                  sireTipo === "RVIE"
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${sireTipo === "RVIE"
                     ? "bg-blue-600 text-white shadow-sm"
                     : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
-                }`}
+                  }`}
               >
                 RVIE (Registro de Ventas)
               </button>
@@ -671,11 +666,10 @@ export default function ContadorTributacionPage() {
                     <button
                       key={st}
                       onClick={() => setSireFiltroEstado(st)}
-                      className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
-                        sireFiltroEstado === st
+                      className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${sireFiltroEstado === st
                           ? "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-sm"
                           : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
-                      }`}
+                        }`}
                     >
                       {st}
                     </button>
@@ -715,19 +709,18 @@ export default function ContadorTributacionPage() {
                       {comprobantesFiltrados.map((comp) => (
                         <tr
                           key={comp.id}
-                          className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors ${
-                            comp.estado_cruce === "EXCLUIDO" ? "opacity-60 bg-rose-50/20" : ""
-                          }`}
+                          className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors ${comp.estado_cruce === "EXCLUIDO" ? "opacity-60 bg-rose-50/20" : ""
+                            }`}
                         >
                           <td className="px-4 py-3 font-medium">
                             <span className="font-mono text-slate-900 dark:text-slate-100">
                               {comp.tipo_comprobante === "01"
                                 ? "01 Factura"
                                 : comp.tipo_comprobante === "03"
-                                ? "03 Boleta"
-                                : comp.tipo_comprobante === "14"
-                                ? "14 Serv. Público"
-                                : `${comp.tipo_comprobante}`}
+                                  ? "03 Boleta"
+                                  : comp.tipo_comprobante === "14"
+                                    ? "14 Serv. Público"
+                                    : `${comp.tipo_comprobante}`}
                             </span>
                             <div className="font-mono text-slate-500 text-[10px]">
                               {comp.serie}-{comp.numero}
@@ -849,11 +842,10 @@ export default function ContadorTributacionPage() {
           {/* ESTADO DE CONCILIACIÓN CON SUNAT */}
           {declaracion && (
             <div
-              className={`p-4 rounded-xl border flex items-center justify-between ${
-                declaracion.estado_coincidencia === "COINCIDE"
+              className={`p-4 rounded-xl border flex items-center justify-between ${declaracion.estado_coincidencia === "COINCIDE"
                   ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300"
                   : "bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300"
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3">
                 {declaracion.estado_coincidencia === "COINCIDE" ? (
@@ -1008,7 +1000,7 @@ export default function ContadorTributacionPage() {
             </div>
           )}
 
-          {/* PANEL DE NPS Y CONSTANCIA (RF-T04) */}
+          {/* PANEL DE NPS Y CONSTANCIA */}
           {declaracion && (
             <Card className="border-emerald-200 dark:border-emerald-900 bg-emerald-50/20 dark:bg-emerald-950/10">
               <CardHeader className="pb-3 border-b border-emerald-100 dark:border-emerald-900">
@@ -1153,11 +1145,10 @@ export default function ContadorTributacionPage() {
           {/* ALERTA DE VALIDACIÓN PLAME */}
           {plameValidacion && (
             <div
-              className={`p-4 rounded-xl border flex items-center justify-between ${
-                plameValidacion.esValido
+              className={`p-4 rounded-xl border flex items-center justify-between ${plameValidacion.esValido
                   ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 text-emerald-800 dark:text-emerald-300"
                   : "bg-rose-50 dark:bg-rose-950/30 border-rose-300 text-rose-800 dark:text-rose-300"
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3">
                 {plameValidacion.esValido ? (

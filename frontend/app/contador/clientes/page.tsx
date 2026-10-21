@@ -123,7 +123,7 @@ export default function ContadorClientesPage() {
               onClick={() => abrirModalNuevoCliente()}
               className="bg-blue-600 hover:bg-blue-700 text-white text-xs gap-1.5 cursor-pointer shadow-xs"
             >
-              <PlusCircle className="h-4 w-4" /> Nuevo Cliente
+              <PlusCircle className="h-4 w-4" /> Nuevo
             </Button>
           </div>
 
@@ -184,9 +184,9 @@ export default function ContadorClientesPage() {
                   <th className="p-3">Régimen Tributario</th>
                   <th className="p-3 text-center">Conexión SUNAT</th>
                   <th className="p-3">Contacto / Correo</th>
-                  <th className="p-3">Celular WhatsApp</th>
+                  <th className="p-3">Celular</th>
                   <th className="p-3 text-center">Estado</th>
-                  <th className="p-3 text-center">Documentos Faltantes</th>
+                  {/*<th className="p-3 text-center">Documentos Faltantes</th>*/}
                   <th className="p-3 text-right">Acciones</th>
                 </tr>
               </thead>
@@ -214,9 +214,7 @@ export default function ContadorClientesPage() {
                         {cli.ruc}
                       </td>
                       <td className="p-3">
-                        <Badge variant="outline" className="text-[10px]">
-                          {cli.regimen_tributario || "MYPE Tributario"}
-                        </Badge>
+                        {cli.regimen_tributario}
                       </td>
                       <td className="p-3 text-center">
                         {cli.sunat_estado_conexion === "CONECTADO" ? (
@@ -227,7 +225,7 @@ export default function ContadorClientesPage() {
                             title="Conexión SOL activa. Clic para ver o editar credenciales."
                           >
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            SOL Conectado
+                            Conectado
                           </Badge>
                         ) : cli.usuario_sol ? (
                           <Badge
@@ -236,7 +234,7 @@ export default function ContadorClientesPage() {
                             onClick={() => abrirModalEditarCliente(cli, "SUNAT")}
                             title="Credenciales registradas. Clic para validar o editar."
                           >
-                            SOL Pendiente
+                            Pendiente
                           </Badge>
                         ) : (
                           <Badge
@@ -250,7 +248,7 @@ export default function ContadorClientesPage() {
                         )}
                       </td>
                       <td className="p-3">
-                        <div className="text-slate-700 dark:text-slate-300">{cli.contacto_nombre || "Titular"}</div>
+                        <div>{cli.contacto_nombre}</div>
                         <div className="text-[11px] text-slate-400 font-mono">{cli.email}</div>
                       </td>
                       <td className="p-3 font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -269,7 +267,7 @@ export default function ContadorClientesPage() {
                           </Badge>
                         )}
                       </td>
-                      <td className="p-3 text-center">
+                      {/*<td className="p-3 text-center">
                         {pendientes > 0 ? (
                           <Badge variant="warning" className="text-[10px] font-semibold">
                             {pendientes} pendientes
@@ -279,23 +277,21 @@ export default function ContadorClientesPage() {
                             Al día
                           </Badge>
                         )}
-                      </td>
+                      </td>*/}
                       <td className="p-3 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          {/* Editar Información Completa y Credenciales SOL */}
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => abrirModalEditarCliente(cli, "DATOS")}
                             className="h-7 px-2 text-xs border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 gap-1 cursor-pointer"
-                            title="Editar datos de la empresa y credenciales SOL"
+                            title="Editar"
                           >
                             <Pencil className="h-3 w-3 text-blue-600" />
-                            <span>Editar</span>
                           </Button>
 
                           {/* Configurar Clave SOL */}
-                          <Button
+                          {/*<Button
                             variant="outline"
                             size="sm"
                             onClick={() => abrirModalEditarCliente(cli, "SUNAT")}
@@ -304,23 +300,24 @@ export default function ContadorClientesPage() {
                           >
                             <KeyRound className="h-3 w-3" />
                             <span>SOL</span>
-                          </Button>
+                          </Button>*/}
 
                           {/* Autologin Directo */}
-                          {cli.usuario_sol && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleAutologinSunat(cli)}
-                              className="h-7 px-1.5 text-xs text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
-                              title="Autologuearme en SUNAT SOL"
-                            >
-                              <ExternalLink className="h-3 w-3" />
-                            </Button>
-                          )}
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleAutologinSunat(cli)}
+                            className="inline-flex items-center gap-1 h-7 px-2.5 rounded-md border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors"
+                            title="Login en SOL"
+                            disabled={!cli.usuario_sol}
+                          >
+                            <ExternalLink className="h-3.5 w-3.5 text-blue-600" />
+                            <span>SOL</span>
+                          </Button>
 
                           {/* Sincronizar Buzón SOL */}
-                          {cli.usuario_sol && (
+                          {/*cli.usuario_sol && (
                             <Button
                               variant="ghost"
                               size="sm"
@@ -330,7 +327,7 @@ export default function ContadorClientesPage() {
                             >
                               <Inbox className="h-3.5 w-3.5" />
                             </Button>
-                          )}
+                          )*/}
                           {/* Enlace al Portal del Cliente */}
                           {isActivo ? (
                             <Link
@@ -359,10 +356,9 @@ export default function ContadorClientesPage() {
                               size="sm"
                               onClick={() => solicitarCambioEstado(cli, false)}
                               className="h-7 px-2.5 text-xs text-red-600 hover:text-red-700 border-red-200 dark:border-red-900/60 hover:bg-red-50 dark:hover:bg-red-950/40 gap-1 cursor-pointer"
-                              title="Desactivar cliente"
+                              title="Desactivar"
                             >
                               <UserX className="h-3.5 w-3.5" />
-                              <span>Desactivar</span>
                             </Button>
                           ) : (
                             <Button
@@ -403,24 +399,19 @@ export default function ContadorClientesPage() {
               {accionActivar ? (
                 <>
                   <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                  Activar Empresa Cliente
+                  Activar Cliente
                 </>
               ) : (
                 <>
                   <AlertTriangle className="h-5 w-5 text-amber-600" />
-                  Desactivar Empresa Cliente
+                  Desactivar Cliente
                 </>
               )}
             </DialogTitle>
-            <DialogDescription className="text-xs">
-              {accionActivar
-                ? "Habilite nuevamente al cliente para el seguimiento tributario y notificaciones."
-                : "El cliente pasará a estado inactivo sin borrar su historial contable."}
-            </DialogDescription>
           </DialogHeader>
 
           {clienteSeleccionado && (
-            <div className="space-y-3 text-xs py-2">
+            <div className="space-y-3 text-xs">
               <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 space-y-1">
                 <p><strong>Empresa:</strong> {clienteSeleccionado.razon_social}</p>
                 <p><strong>RUC:</strong> {clienteSeleccionado.ruc}</p>
@@ -438,7 +429,7 @@ export default function ContadorClientesPage() {
                 <div className="p-3 rounded-lg bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 space-y-1">
                   <p className="font-semibold">¿Está seguro de desactivar este cliente?</p>
                   <p className="text-[11px] leading-relaxed">
-                    El cliente no se eliminará definitivamente de la base de datos para preservar la integridad de sus comprobantes y auditoría histórica. Podrá reactivarlo en cualquier momento desde la pestaña "Inactivos".
+                    El cliente no se eliminará definitivamente para preservar la integridad de sus comprobantes e historial. Podrá reactivarlo en cualquier momento.
                   </p>
                 </div>
               )}
@@ -466,8 +457,8 @@ export default function ContadorClientesPage() {
               {procesando
                 ? "Procesando..."
                 : accionActivar
-                  ? "Confirmar Activación"
-                  : "Confirmar Desactivación"}
+                  ? "Activar"
+                  : "Desactivar"}
             </Button>
           </DialogFooter>
         </DialogContent>

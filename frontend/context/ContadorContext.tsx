@@ -530,7 +530,7 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
         try {
           if (!event.data) return;
           const data = JSON.parse(event.data);
-          
+
           if (data?.type === "chat_message" && data.message) {
             // Disparar evento global para componentes de Chat en vivo
             if (typeof window !== "undefined") {
@@ -934,7 +934,7 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
       setSmtpModalOpen(false);
       alert("¡Configuración de servidor SMTP e IMAP guardada exitosamente!");
       cargarCorreosRecibidos();
-      handleSincronizarBandeja().catch(() => {});
+      handleSincronizarBandeja().catch(() => { });
     } catch (err: any) {
       alert(`Error al guardar configuración SMTP: ${err.message}`);
     } finally {
@@ -1427,7 +1427,7 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
 
   const handleSincronizarBuzon = async (clienteIdParam?: number) => {
     const id = clienteIdParam || (filtroBuzonClienteId !== "TODOS" ? Number(filtroBuzonClienteId) : (clienteParaSunat?.id));
-    
+
     // Si no se especifica un cliente, sincronizar masivamente a TODOS los clientes
     if (!id) {
       return handleSincronizarBuzonTodos();
