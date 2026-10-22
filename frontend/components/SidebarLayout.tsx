@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
+import { CountryCodeSelect } from "@/components/CountryCodeSelect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -160,6 +161,8 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
     setNuevoEmail,
     nuevoCelular,
     setNuevoCelular,
+    nuevoCodigoPais,
+    setNuevoCodigoPais,
     nuevoRegimen,
     setNuevoRegimen,
     nuevaDireccion,
@@ -890,16 +893,19 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                       <Label htmlFor="regCelular" className="text-xs font-semibold">
                         Celular: <span className="text-red-500">*</span>
                       </Label>
-                      <div className="flex items-center gap-1">
-                        <span className="h-8 px-2 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-500 text-xs flex items-center font-mono">
-                          +51
-                        </span>
-                        <Input
+                      <div className="relative flex items-center rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-600 transition-all h-8">
+                        <CountryCodeSelect
+                          value={nuevoCodigoPais}
+                          onChange={setNuevoCodigoPais}
+                          className="border-0 border-r border-slate-200 dark:border-slate-800 rounded-l-md h-full bg-slate-50 dark:bg-slate-800/60"
+                        />
+                        <input
                           id="regCelular"
+                          type="tel"
                           placeholder="Celular"
                           value={nuevoCelular}
                           onChange={(e) => setNuevoCelular(e.target.value.replace(/\D/g, ""))}
-                          className="text-xs h-8 font-mono flex-1"
+                          className="h-full flex-1 px-3 bg-transparent rounded-r-md text-xs font-mono text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none"
                           required
                         />
                       </div>

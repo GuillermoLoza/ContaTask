@@ -252,7 +252,7 @@ export default function ContadorClientesPage() {
                         <div className="text-[11px] text-slate-400 font-mono">{cli.email}</div>
                       </td>
                       <td className="p-3 font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
-                        {cli.celular ? `+51 ${cli.celular}` : "-"}
+                        {cli.celular ? (cli.celular.startsWith("+") ? cli.celular : `+51 ${cli.celular}`) : "-"}
                       </td>
                       <td className="p-3 text-center">
                         {isActivo ? (

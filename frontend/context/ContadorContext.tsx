@@ -24,6 +24,7 @@ import {
   CronogramaClienteItem,
   CronogramaOficial
 } from "@/lib/api";
+import { CODIGOS_PAIS, parseTelefonoCelular } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 
 export type CronogramaItem = CronogramaClienteItem;
@@ -112,6 +113,8 @@ interface ContadorContextType {
   setNuevoEmail: (e: string) => void;
   nuevoCelular: string;
   setNuevoCelular: (c: string) => void;
+  nuevoCodigoPais: string;
+  setNuevoCodigoPais: (cp: string) => void;
   nuevoRegimen: string;
   setNuevoRegimen: (r: string) => void;
   nuevaDireccion: string;
@@ -355,6 +358,7 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
   const [nuevoContactoNombre, setNuevoContactoNombre] = useState("");
   const [nuevoEmail, setNuevoEmail] = useState("");
   const [nuevoCelular, setNuevoCelular] = useState("");
+  const [nuevoCodigoPais, setNuevoCodigoPais] = useState("+51");
   const [nuevoRegimen, setNuevoRegimen] = useState("MYPE Tributario");
   const [nuevaDireccion, setNuevaDireccion] = useState("");
   const [nuevoUsuarioSol, setNuevoUsuarioSol] = useState("");
@@ -1149,6 +1153,7 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
     setNuevoContactoNombre("");
     setNuevoEmail("");
     setNuevoCelular("");
+    setNuevoCodigoPais("+51");
     setNuevoRegimen("MYPE Tributario");
     setNuevaDireccion("");
     setNuevoUsuarioSol("");
@@ -1168,7 +1173,9 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
     setNuevoNombreComercial(cliente.nombre_comercial || "");
     setNuevoContactoNombre(cliente.contacto_nombre || "");
     setNuevoEmail(cliente.email || "");
-    setNuevoCelular(cliente.celular || "");
+    const { codigoPais, numero } = parseTelefonoCelular(cliente.celular);
+    setNuevoCodigoPais(codigoPais);
+    setNuevoCelular(numero);
     setNuevoRegimen(cliente.regimen_tributario || "MYPE Tributario");
     setNuevaDireccion(cliente.direccion || "");
     setNuevoUsuarioSol(cliente.usuario_sol || "");
@@ -1195,13 +1202,17 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
     setClienteError(null);
     setClienteSuccess(null);
 
+    const celularFinal = nuevoCodigoPais === "+51"
+      ? nuevoCelular.trim()
+      : `${nuevoCodigoPais} ${nuevoCelular.trim()}`;
+
     const payload: Partial<Cliente> = {
       ruc: nuevoRuc.trim(),
       razon_social: nuevaRazonSocial.trim(),
       nombre_comercial: nuevoNombreComercial ? nuevoNombreComercial.trim() : undefined,
       contacto_nombre: nuevoContactoNombre ? nuevoContactoNombre.trim() : undefined,
       email: nuevoEmail.trim().toLowerCase(),
-      celular: nuevoCelular.trim(),
+      celular: celularFinal,
       regimen_tributario: nuevoRegimen,
       direccion: nuevaDireccion ? nuevaDireccion.trim() : undefined,
       usuario_sol: nuevoUsuarioSol ? nuevoUsuarioSol.trim().toUpperCase() : undefined,
@@ -1594,6 +1605,8 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
         setNuevoEmail,
         nuevoCelular,
         setNuevoCelular,
+        nuevoCodigoPais,
+        setNuevoCodigoPais,
         nuevoRegimen,
         setNuevoRegimen,
         nuevaDireccion,
