@@ -47,6 +47,12 @@ interface ClientePortalContextType {
   docVisorUrl: string | null;
   docVisorNombre: string;
   docVisorId: number | null;
+
+  // Carga Masiva
+  bulkUploadModalOpen: boolean;
+  setBulkUploadModalOpen: (open: boolean) => void;
+  bulkUploadInitialTrxId: number | null;
+  abrirModalCargaMasiva: (initialTrxId?: number) => void;
 }
 
 const ClientePortalContext = createContext<ClientePortalContextType | undefined>(undefined);
@@ -76,6 +82,15 @@ export function ClientePortalProvider({ children }: { children: React.ReactNode 
   const [docVisorUrl, setDocVisorUrl] = useState<string | null>(null);
   const [docVisorNombre, setDocVisorNombre] = useState<string>("");
   const [docVisorId, setDocVisorId] = useState<number | null>(null);
+
+  // Estados de Carga Masiva
+  const [bulkUploadModalOpen, setBulkUploadModalOpen] = useState(false);
+  const [bulkUploadInitialTrxId, setBulkUploadInitialTrxId] = useState<number | null>(null);
+
+  const abrirModalCargaMasiva = (initialTrxId?: number) => {
+    setBulkUploadInitialTrxId(initialTrxId || null);
+    setBulkUploadModalOpen(true);
+  };
 
   const activeRuc = rucParam || user?.ruc || null;
 
@@ -264,7 +279,11 @@ export function ClientePortalProvider({ children }: { children: React.ReactNode 
         setVisorModalOpen,
         docVisorUrl,
         docVisorNombre,
-        docVisorId
+        docVisorId,
+        bulkUploadModalOpen,
+        setBulkUploadModalOpen,
+        bulkUploadInitialTrxId,
+        abrirModalCargaMasiva
       }}
     >
       {children}

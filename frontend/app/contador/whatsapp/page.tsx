@@ -27,6 +27,7 @@ import {
   Sparkles,
   Clock,
   ChevronDown,
+  ChevronLeft,
   AlertCircle,
   FileText,
   Calendar,
@@ -41,6 +42,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { CountryCodeSelect } from "@/components/CountryCodeSelect";
 import { useContador } from "@/context/ContadorContext";
 import {
   api,
@@ -67,6 +69,8 @@ export default function ContadorWhatsAppPage() {
     realtimeActive,
     linkMethod,
     setLinkMethod,
+    senderCodigoPais,
+    setSenderCodigoPais,
     senderPhoneNumber,
     setSenderPhoneNumber,
     senderPushname,
@@ -174,7 +178,7 @@ export default function ContadorWhatsAppPage() {
         setTimeout(() => scrollToBottom(false), 80);
       }
       // Marcar como leído
-      await api.marcarWhatsAppChatLeido(phone).catch(() => {});
+      await api.marcarWhatsAppChatLeido(phone).catch(() => { });
       // Actualizar contador en local
       setConversaciones((prev) =>
         prev.map((c) => (c.phone_number === phone ? { ...c, unread_count: 0 } : c))
@@ -219,7 +223,7 @@ export default function ContadorWhatsAppPage() {
 
         // Si fue un mensaje recibido, marcarlo leído
         if (!msg.from_me) {
-          api.marcarWhatsAppChatLeido(msg.phone_number).catch(() => {});
+          api.marcarWhatsAppChatLeido(msg.phone_number).catch(() => { });
         }
       }
 
@@ -456,16 +460,15 @@ export default function ContadorWhatsAppPage() {
   }, [conversaciones, busqueda, filtroTipo]);
 
   return (
-    <div className="space-y-4 max-w-7xl mx-auto animate-fade-in pb-12">
+    <div className={`space-y-4 max-w-7xl mx-auto animate-fade-in ${activeTab === "chat" ? "pb-2 sm:pb-3" : "pb-12"}`}>
       {/* 1. TOP HEADER & BARRA DE ESTADO */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs rounded-xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div
-            className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${
-              whatsappStatus?.isConnected
-                ? "bg-emerald-500/10 text-emerald-600 ring-4 ring-emerald-500/10"
-                : "bg-slate-100 dark:bg-slate-800 text-slate-500 ring-4 ring-slate-500/10"
-            }`}
+            className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${whatsappStatus?.isConnected
+              ? "bg-emerald-500/10 text-emerald-600 ring-4 ring-emerald-500/10"
+              : "bg-slate-100 dark:bg-slate-800 text-slate-500 ring-4 ring-slate-500/10"
+              }`}
           >
             {whatsappStatus?.isConnected ? (
               <MessageSquare className="h-6 w-6 stroke-[2]" />
@@ -477,13 +480,13 @@ export default function ContadorWhatsAppPage() {
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                WhatsApp Web Contable en Tiempo Real
+                WhatsApp
               </h2>
               <Badge
                 variant={whatsappStatus?.isConnected ? "success" : "secondary"}
                 className="text-[11px] font-semibold"
               >
-                {whatsappStatus?.isConnected ? "En Línea" : "Modo Offline / Resiliente"}
+                {whatsappStatus?.isConnected ? "En Línea" : "Modo Offline"}
               </Badge>
               {realtimeActive && (
                 <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-950/30">
@@ -494,8 +497,8 @@ export default function ContadorWhatsAppPage() {
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               {whatsappStatus?.isConnected
-                ? `Conectado como +51 ${whatsappStatus.connectedUser?.phoneNumber || senderPhoneNumber} (${whatsappStatus.connectedUser?.pushname || senderPushname || "Estudio Contable"})`
-                : "Comuníquese en vivo con sus clientes tributarios por WhatsApp con almacenamiento y trazabilidad"}
+                ? `Conectado como +51 ${whatsappStatus.connectedUser?.phoneNumber || senderPhoneNumber} (${whatsappStatus.connectedUser?.pushname || senderPushname || ""})`
+                : "Comuníquese en tiempo real con sus clientes por WhatsApp"}
             </p>
           </div>
         </div>
@@ -507,26 +510,24 @@ export default function ContadorWhatsAppPage() {
             <button
               type="button"
               onClick={() => setActiveTab("chat")}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === "chat"
-                  ? "bg-white dark:bg-slate-900 text-emerald-600 shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-              }`}
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${activeTab === "chat"
+                ? "bg-white dark:bg-slate-900 text-emerald-600 shadow-xs"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                }`}
             >
               <MessageSquare className="h-3.5 w-3.5" />
-              Chat en Vivo
+              Chat
             </button>
             <button
               type="button"
               onClick={() => setActiveTab("pairing")}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === "pairing"
-                  ? "bg-white dark:bg-slate-900 text-emerald-600 shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-              }`}
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${activeTab === "pairing"
+                ? "bg-white dark:bg-slate-900 text-emerald-600 shadow-xs"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                }`}
             >
               <QrCode className="h-3.5 w-3.5" />
-              Vincular Dispositivo (QR)
+              Vincular Dispositivo
             </button>
           </div>
 
@@ -559,14 +560,13 @@ export default function ContadorWhatsAppPage() {
         </div>
       </div>
 
-      {/* 2. TAB: CHAT EN VIVO DE WHATSAPP WEB */}
       {activeTab === "chat" && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 h-[calc(100vh-210px)] min-h-[640px]">
-          
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm rounded-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 h-[calc(100dvh-250px)] sm:h-[calc(100dvh-230px)] lg:h-[calc(100dvh-220px)] min-h-[460px] sm:min-h-[500px] lg:min-h-[540px]">
+
           {/* PANEL IZQUIERDO: LISTA DE CHATS (4 COLS) */}
-          <div className="lg:col-span-4 border-r border-slate-200/80 dark:border-slate-800 flex flex-col h-full bg-slate-50/50 dark:bg-slate-900/60">
+          <div className={`lg:col-span-4 border-r border-slate-200/80 dark:border-slate-800 flex flex-col h-full bg-slate-50/50 dark:bg-slate-900/60 ${chatActivo ? "hidden lg:flex" : "flex"}`}>
             {/* Header del panel de chats */}
-            <div className="p-3.5 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2 bg-white dark:bg-slate-900">
+            <div className="p-3.5 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2 bg-white dark:bg-slate-900 shrink-0">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm text-slate-800 dark:text-slate-200">
                   Conversaciones
@@ -590,11 +590,11 @@ export default function ContadorWhatsAppPage() {
             </div>
 
             {/* Buscador de contactos */}
-            <div className="p-2.5 border-b border-slate-200/70 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 space-y-2">
+            <div className="p-2.5 border-b border-slate-200/70 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 space-y-2 shrink-0">
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
                 <Input
-                  placeholder="Buscar por cliente, RUC o número..."
+                  placeholder="Buscar por cliente o número..."
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
                   className="text-xs pl-8 h-8 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
@@ -614,44 +614,31 @@ export default function ContadorWhatsAppPage() {
                 <button
                   type="button"
                   onClick={() => setFiltroTipo("todos")}
-                  className={`px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors cursor-pointer ${
-                    filtroTipo === "todos"
-                      ? "bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
-                  }`}
+                  className={`px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors cursor-pointer ${filtroTipo === "todos"
+                    ? "bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
+                    }`}
                 >
                   Todos
                 </button>
                 <button
                   type="button"
                   onClick={() => setFiltroTipo("no_leidos")}
-                  className={`px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1 ${
-                    filtroTipo === "no_leidos"
-                      ? "bg-emerald-600 text-white"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
-                  }`}
+                  className={`px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1 ${filtroTipo === "no_leidos"
+                    ? "bg-emerald-600 text-white"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
+                    }`}
                 >
                   No leídos
                   {conversaciones.some((c) => c.unread_count > 0) && (
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                   )}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setFiltroTipo("clientes")}
-                  className={`px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors cursor-pointer ${
-                    filtroTipo === "clientes"
-                      ? "bg-blue-600 text-white"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
-                  }`}
-                >
-                  Con RUC SUNAT
-                </button>
               </div>
             </div>
 
             {/* Lista scrollable de conversaciones */}
-            <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60">
+            <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 custom-scrollbar">
               {loadingConversaciones ? (
                 <div className="p-8 text-center space-y-2">
                   <RefreshCw className="h-5 w-5 animate-spin mx-auto text-emerald-600" />
@@ -663,19 +650,8 @@ export default function ContadorWhatsAppPage() {
                     <MessageSquare className="h-6 w-6" />
                   </div>
                   <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    {busqueda ? "No se encontraron contactos" : "Sin conversaciones aún"}
+                    {busqueda ? "No se encontraron contactos" : "Sin conversaciones"}
                   </p>
-                  <p className="text-[11px] text-slate-500 max-w-[200px] mx-auto">
-                    Haga clic en "+ Nuevo Chat" para abrir una conversación con un cliente.
-                  </p>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setModalNuevoChat(true)}
-                    className="text-xs text-emerald-600 border-emerald-300"
-                  >
-                    Iniciar Primer Chat
-                  </Button>
                 </div>
               ) : (
                 conversacionesFiltradas.map((conv) => {
@@ -686,11 +662,10 @@ export default function ContadorWhatsAppPage() {
                     <div
                       key={conv.phone_number}
                       onClick={() => seleccionarChat(conv)}
-                      className={`p-3 transition-colors cursor-pointer flex items-center gap-3 relative ${
-                        isSelected
-                          ? "bg-emerald-50/80 dark:bg-emerald-950/30 border-l-4 border-emerald-600"
-                          : "hover:bg-slate-100/70 dark:hover:bg-slate-800/40"
-                      }`}
+                      className={`p-3 transition-colors cursor-pointer flex items-center gap-3 relative ${isSelected
+                        ? "bg-emerald-50/80 dark:bg-emerald-950/30 border-l-4 border-emerald-600"
+                        : "hover:bg-slate-100/70 dark:hover:bg-slate-800/40"
+                        }`}
                     >
                       {/* Avatar */}
                       <div className="relative shrink-0">
@@ -748,13 +723,23 @@ export default function ContadorWhatsAppPage() {
           </div>
 
           {/* PANEL DERECHO: CONVERSACIÓN ACTIVA (8 COLS) */}
-          <div className="lg:col-span-8 flex flex-col h-full bg-slate-100/60 dark:bg-slate-950/70 relative">
+          <div className={`lg:col-span-8 flex flex-col h-full bg-slate-100/60 dark:bg-slate-950/70 relative ${chatActivo ? "flex" : "hidden lg:flex"}`}>
             {chatActivo ? (
               <>
                 {/* 1. HEADER DEL CHAT ACTIVO */}
-                <div className="p-3 px-4 border-b border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between gap-3 shadow-2xs">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                <div className="p-3 px-4 border-b border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between gap-3 shadow-2xs shrink-0">
+                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => setChatActivo(null)}
+                      className="lg:hidden p-1.5 -ml-1 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer shrink-0"
+                      title="Volver a conversaciones"
+                      aria-label="Volver a conversaciones"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
                       {(chatActivo.contact_name || chatActivo.cliente_razon_social || chatActivo.phone_number)
                         .slice(0, 2)
                         .toUpperCase()}
@@ -810,7 +795,7 @@ export default function ContadorWhatsAppPage() {
                 </div>
 
                 {/* 2. ÁREA DE MENSAJES CON FONDO PATRÓN WHATSAPP */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[radial-gradient(#0000000a_1px,transparent_1px)] dark:bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:16px_16px]">
+                <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3 custom-scrollbar bg-[radial-gradient(#0000000a_1px,transparent_1px)] dark:bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:16px_16px]">
                   {loadingMensajes ? (
                     <div className="flex items-center justify-center h-full">
                       <div className="text-center space-y-2">
@@ -840,11 +825,10 @@ export default function ContadorWhatsAppPage() {
                           className={`flex ${isMe ? "justify-end" : "justify-start"} animate-fade-in`}
                         >
                           <div
-                            className={`max-w-[75%] sm:max-w-[65%] rounded-2xl p-3 shadow-xs relative text-xs ${
-                              isMe
-                                ? "bg-[#d9fdd3] dark:bg-[#005c4b] text-slate-900 dark:text-slate-100 rounded-tr-xs"
-                                : "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/60 dark:border-slate-700/60"
-                            }`}
+                            className={`max-w-[75%] sm:max-w-[65%] rounded-2xl p-3 shadow-xs relative text-xs ${isMe
+                              ? "bg-[#d9fdd3] dark:bg-[#005c4b] text-slate-900 dark:text-slate-100 rounded-tr-xs"
+                              : "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs border border-slate-200/60 dark:border-slate-700/60"
+                              }`}
                           >
                             {/* Remitente si no es el contador */}
                             {!isMe && (
@@ -906,7 +890,7 @@ export default function ContadorWhatsAppPage() {
                 {/* 4. BARRA DE INPUT PARA ESCRIBIR Y ENVIAR */}
                 <form
                   onSubmit={handleEnviarMensaje}
-                  className="p-3 bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800 flex items-end gap-2"
+                  className="p-3 bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800 flex items-end gap-2 shrink-0"
                 >
                   <div className="flex-1 relative">
                     <Textarea
@@ -930,7 +914,7 @@ export default function ContadorWhatsAppPage() {
                     disabled={enviandoMensaje || !inputMensaje.trim()}
                     className="h-10 w-10 p-0 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shrink-0 shadow-xs cursor-pointer flex items-center justify-center transition-all disabled:opacity-50"
                   >
-                    <Send className={`h-4 w-4 ${enviandoMensaje ? "animate-spin" : ""}`} />
+                    <Send className={`h-4 w-4`} />
                   </Button>
                 </form>
               </>
@@ -942,19 +926,17 @@ export default function ContadorWhatsAppPage() {
                 </div>
                 <div className="max-w-md space-y-1.5">
                   <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
-                    WhatsApp Web Empresarial ContaTask
+                    Chat de WhatsApp
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Seleccione un chat de la lista izquierda o inicie una conversación directa con sus clientes tributarios registrados.
-                  </p>
                 </div>
                 <Button
                   size="sm"
+                  variant="outline"
                   onClick={() => setModalNuevoChat(true)}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs gap-1.5 cursor-pointer shadow-xs"
+                  className="text-xs h-8 gap-1 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-950/40 hover:bg-emerald-100 cursor-pointer"
                 >
-                  <Plus className="h-4 w-4" />
-                  Iniciar Nuevo Chat con Cliente
+                  <Plus className="h-3.5 w-3.5" />
+                  Nuevo Chat
                 </Button>
               </div>
             )}
@@ -975,7 +957,7 @@ export default function ContadorWhatsAppPage() {
                     Vinculación de Cuenta de WhatsApp
                   </CardTitle>
                   <CardDescription className="text-xs text-slate-500">
-                    Seleccione el método de vinculación oficial para habilitar el envío fehaciente
+                    Seleccione el método de vinculación para habilitar el envío
                   </CardDescription>
                 </div>
 
@@ -984,22 +966,20 @@ export default function ContadorWhatsAppPage() {
                   <button
                     type="button"
                     onClick={() => setLinkMethod("QR")}
-                    className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer ${
-                      linkMethod === "QR"
-                        ? "bg-white dark:bg-slate-900 text-emerald-600 shadow-xs"
-                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
-                    }`}
+                    className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer ${linkMethod === "QR"
+                      ? "bg-white dark:bg-slate-900 text-emerald-600 shadow-xs"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                      }`}
                   >
                     Código QR
                   </button>
                   <button
                     type="button"
                     onClick={() => setLinkMethod("PHONE")}
-                    className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer ${
-                      linkMethod === "PHONE"
-                        ? "bg-white dark:bg-slate-900 text-emerald-600 shadow-xs"
-                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
-                    }`}
+                    className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer ${linkMethod === "PHONE"
+                      ? "bg-white dark:bg-slate-900 text-emerald-600 shadow-xs"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                      }`}
                   >
                     Número de Celular
                   </button>
@@ -1025,7 +1005,7 @@ export default function ContadorWhatsAppPage() {
                     className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs gap-1.5 cursor-pointer mt-2"
                   >
                     <MessageSquare className="h-3.5 w-3.5" />
-                    Ir al Chat en Vivo
+                    Ir al Chat
                   </Button>
                 </div>
               ) : linkMethod === "QR" ? (
@@ -1067,9 +1047,6 @@ export default function ContadorWhatsAppPage() {
                       <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
                         Generar Sesión de WhatsApp
                       </h4>
-                      <p className="text-xs text-slate-500 max-w-xs mx-auto">
-                        Haga clic abajo para iniciar el cliente de WhatsApp y generar el código QR en tiempo real.
-                      </p>
                       <Button
                         size="sm"
                         onClick={handleIniciarSesionWhatsApp}
@@ -1087,23 +1064,29 @@ export default function ContadorWhatsAppPage() {
                 <div className="space-y-4 py-4 max-w-md mx-auto w-full">
                   <div className="space-y-1">
                     <Label htmlFor="phoneNum" className="text-xs font-semibold">
-                      Número Celular (Perú +51):
+                      Celular: <span className="text-red-500">*</span>
                     </Label>
                     <div className="flex items-center gap-2">
-                      <span className="px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 text-xs font-mono border border-slate-200 dark:border-slate-700">
-                        +51
-                      </span>
-                      <Input
-                        id="phoneNum"
-                        placeholder="920843098"
-                        value={senderPhoneNumber}
-                        onChange={(e) => setSenderPhoneNumber(e.target.value.replace(/\D/g, ""))}
-                        className="text-xs h-9 font-mono"
-                      />
+                      <div className="relative flex-1 flex items-center rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-600 transition-all h-9">
+                        <CountryCodeSelect
+                          value={senderCodigoPais}
+                          onChange={setSenderCodigoPais}
+                          className="border-0 border-r border-slate-200 dark:border-slate-800 rounded-l-md h-full bg-slate-50 dark:bg-slate-800/60"
+                        />
+                        <input
+                          id="phoneNum"
+                          type="tel"
+                          placeholder="Celular"
+                          value={senderPhoneNumber}
+                          onChange={(e) => setSenderPhoneNumber(e.target.value.replace(/\D/g, ""))}
+                          className="h-full flex-1 px-3 bg-transparent rounded-r-md text-xs font-mono text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none"
+                          required
+                        />
+                      </div>
                       <Button
                         size="sm"
-                        onClick={handleGenerarPairingCode}
-                        disabled={generatingPairingCode || senderPhoneNumber.length < 9}
+                        onClick={() => handleGenerarPairingCode()}
+                        disabled={generatingPairingCode || senderPhoneNumber.length < 7}
                         className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs shrink-0 cursor-pointer h-9"
                       >
                         {generatingPairingCode ? "Generando..." : "Pedir Código"}
@@ -1167,7 +1150,7 @@ export default function ContadorWhatsAppPage() {
               <CardContent className="p-4 space-y-3 text-xs">
                 <form onSubmit={handleGuardarConfigNumero} className="space-y-3">
                   <div className="space-y-1">
-                    <Label htmlFor="pushname" className="text-xs">Nombre para Mostrar (Pushname):</Label>
+                    <Label htmlFor="pushname" className="text-xs">Nombre para Mostrar:</Label>
                     <Input
                       id="pushname"
                       value={senderPushname}
@@ -1204,13 +1187,13 @@ export default function ContadorWhatsAppPage() {
               <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
                 <CardTitle className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                   <Send className="h-4 w-4 text-emerald-600" />
-                  Probador de Envío Directo
+                  Envío de Prueba
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 space-y-3 text-xs">
                 <form onSubmit={handleEnviarMensajePrueba} className="space-y-3">
                   <div className="space-y-1">
-                    <Label htmlFor="testPhone" className="text-xs">Número Destino (con código país):</Label>
+                    <Label htmlFor="testPhone" className="text-xs">Número Destino:</Label>
                     <Input
                       id="testPhone"
                       placeholder="51920843098"
@@ -1250,7 +1233,7 @@ export default function ContadorWhatsAppPage() {
                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs gap-1.5 cursor-pointer shadow-xs"
                   >
                     <Send className={`h-3 w-3 ${sendingTestMessage ? "animate-spin" : ""}`} />
-                    {sendingTestMessage ? "Despachando..." : "Despachar Mensaje de Prueba"}
+                    {sendingTestMessage ? "Despachando..." : "Enviar Mensaje"}
                   </Button>
                 </form>
               </CardContent>
@@ -1266,7 +1249,7 @@ export default function ContadorWhatsAppPage() {
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="font-bold text-base text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <Plus className="h-5 w-5 text-emerald-600" />
-                Iniciar Nuevo Chat de WhatsApp
+                Nuevo Chat de WhatsApp
               </h3>
               <button
                 onClick={() => setModalNuevoChat(false)}
@@ -1279,9 +1262,6 @@ export default function ContadorWhatsAppPage() {
             <div className="space-y-4 text-xs">
               {/* Opción 1: Seleccionar Cliente de la base de datos */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">
-                  Seleccionar Cliente del Estudio Contable:
-                </Label>
                 <div className="max-h-48 overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-xl divide-y divide-slate-100 dark:divide-slate-800">
                   {clientes.map((c) => {
                     const isSelected = clienteSeleccionadoId === c.id;
@@ -1293,11 +1273,10 @@ export default function ContadorWhatsAppPage() {
                           setNuevoChatNombre(c.razon_social);
                           if (c.celular) setNuevoChatTelefono(c.celular);
                         }}
-                        className={`p-2.5 flex items-center justify-between gap-2 cursor-pointer transition-colors ${
-                          isSelected
-                            ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200"
-                            : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                        }`}
+                        className={`p-2.5 flex items-center justify-between gap-2 cursor-pointer transition-colors ${isSelected
+                          ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200"
+                          : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                          }`}
                       >
                         <div className="min-w-0">
                           <p className="font-semibold truncate">{c.razon_social}</p>

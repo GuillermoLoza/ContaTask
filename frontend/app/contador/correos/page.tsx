@@ -184,7 +184,7 @@ export default function ContadorCorreosPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-[#1e3a8a] dark:text-blue-400 tracking-tight flex items-center gap-2">
             <Mail className="h-7 w-7 text-blue-600" />
-            Configuración y Gestión de Correos
+            Correos
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Captura de correos entrantes por IMAP, recepción de comprobantes y emisión de notificaciones SUNAT
@@ -207,19 +207,17 @@ export default function ContadorCorreosPage() {
       <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
         <button
           onClick={() => setActiveTab("buzon")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-            activeTab === "buzon"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-          }`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeTab === "buzon"
+            ? "bg-blue-600 text-white shadow-xs"
+            : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
         >
           <Inbox className="h-4 w-4" />
-          <span>Buzón de Entrada (IMAP)</span>
+          <span>Buzón de Entrada</span>
           {(correosStats?.noLeidos ?? 0) > 0 && (
             <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                activeTab === "buzon" ? "bg-white text-blue-700" : "bg-blue-600 text-white"
-              }`}
+              className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${activeTab === "buzon" ? "bg-white text-blue-700" : "bg-blue-600 text-white"
+                }`}
             >
               {correosStats?.noLeidos}
             </span>
@@ -228,26 +226,24 @@ export default function ContadorCorreosPage() {
 
         <button
           onClick={() => setActiveTab("redactar")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-            activeTab === "redactar"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-          }`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeTab === "redactar"
+            ? "bg-blue-600 text-white shadow-xs"
+            : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
         >
           <Send className="h-4 w-4" />
-          <span>Redactar y Emitir</span>
+          <span>Enviar correo</span>
         </button>
 
         <button
           onClick={() => setActiveTab("enviados")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-            activeTab === "enviados"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-          }`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${activeTab === "enviados"
+            ? "bg-blue-600 text-white shadow-xs"
+            : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
         >
           <FileCheck2 className="h-4 w-4" />
-          <span>Auditoría de Envíos</span>
+          <span>Historial de Envíos</span>
           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
             {notificaciones.filter((n) => n.canal === "EMAIL").length}
           </span>
@@ -293,7 +289,7 @@ export default function ContadorCorreosPage() {
               <div className="relative w-full">
                 <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
                 <Input
-                  placeholder="Buscar por remitente, asunto, empresa o RUC..."
+                  placeholder="Buscar por remitente o asunto..."
                   value={busquedaBandeja}
                   onChange={(e) => setBusquedaBandeja(e.target.value)}
                   className="pl-8 h-8 text-xs"
@@ -304,22 +300,20 @@ export default function ContadorCorreosPage() {
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setFiltroBandejaSoloNoLeidos(!filtroBandejaSoloNoLeidos)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
-                  filtroBandejaSoloNoLeidos
-                    ? "bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800 font-semibold"
-                    : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${filtroBandejaSoloNoLeidos
+                  ? "bg-blue-50 text-blue-700 border-blue-300 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800 font-semibold"
+                  : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  }`}
               >
                 No leídos
               </button>
 
               <button
                 onClick={() => setFiltroBandejaConAdjuntos(!filtroBandejaConAdjuntos)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer flex items-center gap-1 ${
-                  filtroBandejaConAdjuntos
-                    ? "bg-purple-50 text-purple-700 border-purple-300 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800 font-semibold"
-                    : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer flex items-center gap-1 ${filtroBandejaConAdjuntos
+                  ? "bg-purple-50 text-purple-700 border-purple-300 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800 font-semibold"
+                  : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  }`}
               >
                 <Paperclip className="h-3 w-3" />
                 Con adjuntos
@@ -345,22 +339,11 @@ export default function ContadorCorreosPage() {
                 <RefreshCw className={`h-3 w-3 ${sincronizandoBandeja ? "animate-spin text-blue-600" : ""}`} />
                 <span>{sincronizandoBandeja ? "Sincronizando..." : "Sincronizar IMAP"}</span>
               </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleSimularCorreoEntrante()}
-                className="h-8 text-xs gap-1 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                title="Generar correo entrante de prueba con voucher adjunto"
-              >
-                <Sparkles className="h-3 w-3 text-amber-500" />
-                Simular Recepción
-              </Button>
             </div>
           </div>
 
           {/* Banner de Estado de Configuración IMAP */}
-          {imapConfig && !imapConfig.isConfigured && (
+          {/*imapConfig && !imapConfig.isConfigured && (
             <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 flex items-start gap-3 text-xs text-amber-900 dark:text-amber-200 animate-fade-in">
               <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
               <div className="flex-1">
@@ -377,7 +360,7 @@ export default function ContadorCorreosPage() {
                 Configurar Ahora
               </Button>
             </div>
-          )}
+          )*/}
 
           {imapConfig?.ultimoError && (
             <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 flex items-center justify-between gap-3 text-xs text-rose-900 dark:text-rose-200 animate-fade-in">
@@ -417,7 +400,7 @@ export default function ContadorCorreosPage() {
                   <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 font-semibold text-slate-600 dark:text-slate-300">
                     <tr>
                       <th className="p-3 w-8 text-center"></th>
-                      <th className="p-3">Remitente / Empresa MYPE</th>
+                      <th className="p-3">Remitente</th>
                       <th className="p-3">Asunto y Mensaje</th>
                       <th className="p-3 text-center">Comprobantes</th>
                       <th className="p-3">Fecha y Hora</th>
@@ -432,9 +415,8 @@ export default function ContadorCorreosPage() {
                       return (
                         <tr
                           key={correo.id}
-                          className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors ${
-                            isUnread ? "bg-blue-50/30 dark:bg-blue-950/20 font-medium" : ""
-                          }`}
+                          className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors ${isUnread ? "bg-blue-50/30 dark:bg-blue-950/20 font-medium" : ""
+                            }`}
                         >
                           <td className="p-3 text-center">
                             {isUnread ? (
@@ -561,11 +543,8 @@ export default function ContadorCorreosPage() {
             <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
               <CardTitle className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <Mail className="h-4 w-4 text-blue-600" />
-                Redacción y Emisión de Notificación
+                Envío de correo
               </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                Despacho con certificación y constancia de envío a la MYPE
-              </CardDescription>
             </CardHeader>
 
             <CardContent className="p-4 flex-1">
@@ -573,7 +552,7 @@ export default function ContadorCorreosPage() {
                 {/* Selector de Plantilla */}
                 <div className="space-y-1">
                   <Label htmlFor="tplSelect" className="text-xs font-semibold">
-                    Plantilla Oficial SUNAT:
+                    Plantilla:
                   </Label>
                   <select
                     id="tplSelect"
@@ -601,7 +580,7 @@ export default function ContadorCorreosPage() {
                 {/* Selector de Cliente */}
                 <div className="space-y-1">
                   <Label htmlFor="cliSelect" className="text-xs font-semibold">
-                    Empresa MYPE Destinataria:
+                    Cliente:
                   </Label>
                   <select
                     id="cliSelect"
@@ -609,7 +588,7 @@ export default function ContadorCorreosPage() {
                     onChange={(e) => handleSeleccionarClienteEmail(e.target.value)}
                     className="w-full h-8 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1 text-xs text-slate-900 dark:text-slate-100 cursor-pointer"
                   >
-                    <option value="">Seleccionar Cliente MYPE (Opcional)...</option>
+                    <option value="">Seleccionar Cliente...</option>
                     {clientes.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.razon_social} ({c.ruc})
@@ -621,12 +600,12 @@ export default function ContadorCorreosPage() {
                 {/* Correo Destino */}
                 <div className="space-y-1">
                   <Label htmlFor="emailTo" className="text-xs font-semibold">
-                    Correo Electrónico Destino:
+                    Correo Destinatario:
                   </Label>
                   <Input
                     id="emailTo"
                     type="email"
-                    placeholder="gerencia@empresa.pe"
+                    placeholder=""
                     value={emailTo}
                     onChange={(e) => setEmailTo(e.target.value)}
                     className="text-xs h-8 font-mono"
@@ -637,7 +616,7 @@ export default function ContadorCorreosPage() {
                 {/* Asunto */}
                 <div className="space-y-1">
                   <Label htmlFor="emailSubject" className="text-xs font-semibold">
-                    Asunto del Correo:
+                    Asunto:
                   </Label>
                   <Input
                     id="emailSubject"
@@ -651,12 +630,13 @@ export default function ContadorCorreosPage() {
                 {/* Mensaje Personalizado */}
                 <div className="space-y-1">
                   <Label htmlFor="customMsg" className="text-xs font-semibold">
-                    Instrucciones Especiales o Anotaciones:
+                    Información adicional:
                   </Label>
                   <Textarea
                     id="customMsg"
                     rows={3}
-                    placeholder="Escriba indicaciones adicionales para el contribuyente..."
+                    placeholder=""
+                    required
                     value={emailCustomMessage}
                     onChange={(e) => setEmailCustomMessage(e.target.value)}
                     className="text-xs resize-none"
@@ -683,7 +663,7 @@ export default function ContadorCorreosPage() {
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 cursor-pointer gap-2 shadow-xs"
                 >
                   <Send className="h-3.5 w-3.5" />
-                  {emailSending ? "Despachando Correo..." : "Despachar Correo con Certificación"}
+                  {emailSending ? "Enviando Correo..." : "Enviar Correo"}
                 </Button>
               </form>
             </CardContent>
@@ -695,15 +675,9 @@ export default function ContadorCorreosPage() {
               <div>
                 <CardTitle className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                   <Eye className="h-4 w-4 text-emerald-600" />
-                  Previsualización Exacta en Tiempo Real
+                  Previsualización
                 </CardTitle>
-                <CardDescription className="text-xs text-slate-500">
-                  Formato HTML adaptativo que recibirá el cliente en su bandeja de correo
-                </CardDescription>
               </div>
-              <Badge variant="outline" className="text-[10px] font-mono">
-                {smtpConfig?.isConfigured ? "SMTP Activo" : "Modo Local"}
-              </Badge>
             </CardHeader>
 
             <CardContent className="p-4 flex-1 flex flex-col bg-slate-100/50 dark:bg-slate-950/40">
@@ -741,11 +715,8 @@ export default function ContadorCorreosPage() {
               <div>
                 <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                   <FileCheck2 className="h-4 w-4 text-blue-600" />
-                  Historial de Correos Emitidos y Auditoría Tributaria
+                  Historial de Envíos
                 </CardTitle>
-                <CardDescription className="text-xs text-slate-500">
-                  Registro fehaciente de notificaciones, constancias y requerimientos enviados a clientes
-                </CardDescription>
               </div>
               <Badge variant="outline" className="text-xs">
                 {notificaciones.filter((n) => n.canal === "EMAIL").length} correos registrados
@@ -759,8 +730,8 @@ export default function ContadorCorreosPage() {
                 <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 font-semibold text-slate-600 dark:text-slate-300">
                   <tr>
                     <th className="p-3">Fecha y Hora</th>
-                    <th className="p-3">Empresa MYPE</th>
-                    <th className="p-3">Destinatario</th>
+                    <th className="p-3">Cliente</th>
+                    <th className="p-3">Correo Destinatario</th>
                     <th className="p-3">Asunto</th>
                     <th className="p-3 text-center">Estado</th>
                     <th className="p-3 text-right">Detalle</th>

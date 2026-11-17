@@ -5,7 +5,9 @@ import { useSearchParams } from "next/navigation";
 import {
   FileUp,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  FolderUp,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,7 +22,8 @@ export default function PendientesPage() {
   const {
     transacciones,
     loading,
-    abrirModalSubida
+    abrirModalSubida,
+    abrirModalCargaMasiva
   } = useClientePortal();
 
   if (loading) {
@@ -48,10 +51,51 @@ export default function PendientesPage() {
           </p>
         </div>
 
-        <Badge variant="outline" className="text-xs">
-          {pendientesDeSubida.length} requerimientos pendientes
-        </Badge>
+        {pendientesDeSubida.length > 0 ? (
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => abrirModalCargaMasiva()}
+              className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs gap-1.5 h-8.5 cursor-pointer shadow-xs"
+            >
+              <FolderUp className="h-4 w-4" />
+              Carga Masiva de Pendientes
+            </Button>
+            <Badge variant="outline" className="text-xs">
+              {pendientesDeSubida.length} requerimientos
+            </Badge>
+          </div>
+        ) : (
+          <Badge variant="outline" className="text-xs">
+            0 requerimientos pendientes
+          </Badge>
+        )}
       </div>
+
+      {pendientesDeSubida.length > 0 && (
+        <div className="p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/20 border border-amber-200 dark:border-amber-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 shrink-0">
+              <FolderUp className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="font-bold text-slate-900 dark:text-slate-100">
+                Subida Rápida en Lote
+              </p>
+              <p className="text-slate-600 dark:text-slate-300">
+                Puede arrastrar varios comprobantes o vouchers bancarios a la vez (PDF, JPG, PNG). El sistema detecta el número de factura y proveedor automáticamente.
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => abrirModalCargaMasiva()}
+            className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold gap-1.5 h-8 cursor-pointer shrink-0"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Cargar Vouchers en Bloque
+          </Button>
+        </div>
+      )}
 
       {pendientesDeSubida.length === 0 ? (
         <Card className="bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 p-8 text-center space-y-3 rounded-2xl">

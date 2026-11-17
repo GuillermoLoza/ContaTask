@@ -158,6 +158,8 @@ interface ContadorContextType {
   setLinkMethod: (m: "QR" | "PHONE") => void;
   configModalOpen: boolean;
   setConfigModalOpen: (o: boolean) => void;
+  senderCodigoPais: string;
+  setSenderCodigoPais: (p: string) => void;
   senderPhoneNumber: string;
   setSenderPhoneNumber: (p: string) => void;
   senderPushname: string;
@@ -169,7 +171,7 @@ interface ContadorContextType {
   pairingCountdown: number;
   cargarWhatsAppStatus: () => Promise<void>;
   handleGuardarConfigNumero: (e?: React.FormEvent) => Promise<void>;
-  handleGenerarPairingCode: () => Promise<void>;
+  handleGenerarPairingCode: (customPhone?: string) => Promise<void>;
   handleCopiarPairingCode: () => void;
   handleConfirmarConNumero: () => Promise<void>;
   handleIniciarSesionWhatsApp: () => Promise<void>;
@@ -381,13 +383,14 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
   );
   const [testResult, setTestResult] = useState<any>(null);
   const [testError, setTestError] = useState<string | null>(null);
-  const [customPushname, setCustomPushname] = useState("Estudio Contable Lozano & Asociados");
+  const [customPushname, setCustomPushname] = useState("");
   const [countdown, setCountdown] = useState<number>(20);
   const [realtimeActive, setRealtimeActive] = useState<boolean>(false);
   const [linkMethod, setLinkMethod] = useState<"QR" | "PHONE">("QR");
   const [configModalOpen, setConfigModalOpen] = useState<boolean>(false);
+  const [senderCodigoPais, setSenderCodigoPais] = useState<string>("+51");
   const [senderPhoneNumber, setSenderPhoneNumber] = useState<string>("920843098");
-  const [senderPushname, setSenderPushname] = useState<string>("Estudio Contable Lozano & Asociados");
+  const [senderPushname, setSenderPushname] = useState<string>("");
   const [savingConfig, setSavingConfig] = useState<boolean>(false);
   const [configSuccessMsg, setConfigSuccessMsg] = useState<string | null>(null);
   const [generatingPairingCode, setGeneratingPairingCode] = useState<boolean>(false);
@@ -414,7 +417,7 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
   const [smtpPort, setSmtpPort] = useState<number>(587);
   const [smtpUser, setSmtpUser] = useState<string>("");
   const [smtpPass, setSmtpPass] = useState<string>("");
-  const [smtpFrom, setSmtpFrom] = useState<string>('"Estudio Contable Lozano & Asociados" <notificaciones@contatask.pe>');
+  const [smtpFrom, setSmtpFrom] = useState<string>('');
   const [smtpSecure, setSmtpSecure] = useState<boolean>(false);
   const [smtpTesting, setSmtpTesting] = useState<boolean>(false);
   const [smtpTestEmail, setSmtpTestEmail] = useState<string>("");
@@ -648,7 +651,7 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
           setSmtpHost(smtpRes.config.host || "smtp.ethereal.email");
           setSmtpPort(smtpRes.config.port || 587);
           setSmtpUser(smtpRes.config.rawUser || "");
-          setSmtpFrom(smtpRes.config.from || '"Estudio Contable Lozano & Asociados" <notificaciones@contatask.pe>');
+          setSmtpFrom(smtpRes.config.from);
           setSmtpSecure(smtpRes.config.secure || false);
         }
       } catch (mailErr) {
@@ -683,8 +686,10 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
     setSavingConfig(true);
     setConfigSuccessMsg(null);
     try {
+      const cleanPrefix = (senderCodigoPais || "+51").replace(/\D/g, "");
+      const fullPhone = `${cleanPrefix}${senderPhoneNumber.replace(/\D/g, "")}`;
       const res = await api.configureWhatsAppAccount({
-        phoneNumber: senderPhoneNumber,
+        phoneNumber: fullPhone,
         pushname: senderPushname
       });
       if (res?.whatsapp) {
@@ -699,12 +704,14 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const handleGenerarPairingCode = async () => {
+  const handleGenerarPairingCode = async (customPhone?: string) => {
     setGeneratingPairingCode(true);
     setTestError(null);
     try {
+      const cleanPrefix = (senderCodigoPais || "+51").replace(/\D/g, "");
+      const fullPhone = customPhone || `${cleanPrefix}${senderPhoneNumber.replace(/\D/g, "")}`;
       const res = await api.requestWhatsAppPairingCode({
-        phoneNumber: senderPhoneNumber,
+        phoneNumber: fullPhone,
         pushname: senderPushname
       });
       if (res?.whatsapp) {
@@ -730,8 +737,10 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
   const handleConfirmarConNumero = async () => {
     setConfirmingScan(true);
     try {
+      const cleanPrefix = (senderCodigoPais || "+51").replace(/\D/g, "");
+      const fullPhone = `${cleanPrefix}${senderPhoneNumber.replace(/\D/g, "")}`;
       const res = await api.confirmScanWhatsApp({
-        phoneNumber: senderPhoneNumber,
+        phoneNumber: fullPhone,
         pushname: senderPushname
       });
       if (res?.whatsapp) {
@@ -739,7 +748,7 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
       }
       setTestResult({
         success: true,
-        message: `¡WhatsApp Web vinculado exitosamente con el número +51 ${senderPhoneNumber}!`
+        message: `¡WhatsApp Web vinculado exitosamente con el número ${senderCodigoPais} ${senderPhoneNumber}!`
       });
       setConfigModalOpen(false);
     } catch (err: any) {
@@ -768,7 +777,7 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await api.confirmScanWhatsApp({
         phoneNumber: senderPhoneNumber || testPhoneNumber || "51987112233",
-        pushname: senderPushname || customPushname || "Estudio Contable Lozano & Asociados"
+        pushname: senderPushname || customPushname || ""
       });
       if (res?.whatsapp) {
         setWhatsappStatus(res.whatsapp);
@@ -830,7 +839,7 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
         templateId: tid,
         clienteId: cli ? cli.id : undefined,
         data: {
-          clienteNombre: cli?.contacto_nombre || cli?.razon_social || "Empresa MYPE de Ejemplo S.A.C.",
+          clienteNombre: cli?.contacto_nombre || cli?.razon_social || "Cliente de Ejemplo S.A.C.",
           ruc: cli?.ruc || "20601234567",
           periodo: "Agosto 2026",
           vencimiento: "18/09/2026",
@@ -1648,6 +1657,8 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
         setLinkMethod,
         configModalOpen,
         setConfigModalOpen,
+        senderCodigoPais,
+        setSenderCodigoPais,
         senderPhoneNumber,
         setSenderPhoneNumber,
         senderPushname,

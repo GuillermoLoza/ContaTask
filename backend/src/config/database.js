@@ -5,15 +5,22 @@ import { config } from './env.js';
  * Configuración de Knex exclusivamente para PostgreSQL
  */
 function createKnexInstance() {
+  const connection = config.db.connectionString
+    ? {
+        connectionString: config.db.connectionString,
+        ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false }
+      }
+    : {
+        host: config.db.host,
+        port: config.db.port,
+        user: config.db.user,
+        password: config.db.password,
+        database: config.db.database
+      };
+
   return knex({
     client: 'pg',
-    connection: config.db.connectionString || {
-      host: config.db.host,
-      port: config.db.port,
-      user: config.db.user,
-      password: config.db.password,
-      database: config.db.database
-    },
+    connection,
     pool: { min: 2, max: 10 }
   });
 }
@@ -249,9 +256,19 @@ export async function initDatabase() {
       table.decimal('igv', 14, 2).defaultTo(0);
       table.decimal('total', 14, 2).defaultTo(0);
       table.string('ticket_sunat', 50).nullable();
+      table.string('origen_datos', 50).defaultTo('CRUCE_INTERNO');
+      table.text('api_diagnostico').nullable();
       table.timestamp('created_at').defaultTo(db.fn.now());
       table.timestamp('updated_at').defaultTo(db.fn.now());
     });
+  } else {
+    const hasOrigen = await db.schema.hasColumn('sire_propuestas', 'origen_datos');
+    if (!hasOrigen) {
+      await db.schema.table('sire_propuestas', (table) => {
+        table.string('origen_datos', 50).defaultTo('CRUCE_INTERNO');
+        table.text('api_diagnostico').nullable();
+      });
+    }
   }
 
   // 12. Tabla: sire_comprobantes (Detalle de comprobantes de la propuesta SIRE)

@@ -88,9 +88,6 @@ export default function ContadorNotificacionesPage() {
                 <BellRing className="h-5 w-5 text-blue-600" />
                 Bitácora de Notificaciones SUNAT (Auditoría Multicanal)
               </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                Registro fehaciente de requerimientos despachados por WhatsApp y contingencia vía Correo Electrónico
-              </CardDescription>
             </div>
 
             <Button
@@ -110,7 +107,7 @@ export default function ContadorNotificacionesPage() {
               <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 font-semibold text-slate-600 dark:text-slate-300">
                 <tr>
                   <th className="p-3">Fecha y Hora</th>
-                  <th className="p-3">Empresa MYPE</th>
+                  <th className="p-3">Cliente</th>
                   <th className="p-3">Canal</th>
                   <th className="p-3">Destinatario</th>
                   <th className="p-3">Contenido / Asunto</th>

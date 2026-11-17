@@ -48,11 +48,8 @@ export default function ContadorTransaccionesPage() {
             <div>
               <CardTitle className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <FileCheck2 className="h-5 w-5 text-blue-600" />
-                Matriz de Sustentos Contables y Bancarización
+                Documentos
               </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                Supervisión, evaluación y auditoría de comprobantes y constancias bancarias según Ley N° 30730
-              </CardDescription>
             </div>
 
             <Badge variant="outline" className="text-xs font-mono">
@@ -109,7 +106,7 @@ export default function ContadorTransaccionesPage() {
               <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 font-semibold text-slate-600 dark:text-slate-300">
                 <tr>
                   <th className="p-3">Periodo / Fecha</th>
-                  <th className="p-3">Empresa MYPE</th>
+                  <th className="p-3">Cliente</th>
                   <th className="p-3">Tipo & N° Comprobante</th>
                   <th className="p-3">Emisor / Proveedor</th>
                   <th className="p-3 text-right">Monto Total</th>
@@ -122,9 +119,8 @@ export default function ContadorTransaccionesPage() {
                 {transaccionesFiltradas.map((trx) => (
                   <tr
                     key={trx.id}
-                    className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors ${
-                      trx.estado_sustento === "RECHAZADO" ? "bg-red-50/30 dark:bg-red-950/15" : ""
-                    }`}
+                    className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors ${trx.estado_sustento === "RECHAZADO" ? "bg-red-50/30 dark:bg-red-950/15" : ""
+                      }`}
                   >
                     <td className="p-3 whitespace-nowrap">
                       <div className="font-semibold text-slate-900 dark:text-slate-100">{trx.periodo}</div>

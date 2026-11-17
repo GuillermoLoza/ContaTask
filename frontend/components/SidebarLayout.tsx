@@ -267,71 +267,71 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
     router.push("/login");
   };
 
-  const navItems = [
-    {
-      id: "inicio",
-      label: "Inicio",
-      icon: LayoutGrid,
-      href: "/contador",
-      active: pathname === "/contador",
-    },
-    {
-      id: "clientes",
-      label: "Directorio de Clientes",
-      icon: Building2,
-      href: "/contador/clientes",
-      active: pathname.startsWith("/contador/clientes"),
-    },
-    {
-      id: "transacciones",
-      label: "Transacciones / Documentos",
-      icon: FileCheck2,
-      href: "/contador/transacciones",
-      active: pathname.startsWith("/contador/transacciones"),
-    },
-    {
-      id: "notificaciones",
-      label: "Notificaciones SUNAT",
-      icon: BellRing,
-      href: "/contador/notificaciones",
-      active: pathname.startsWith("/contador/notificaciones"),
-    },
-    {
-      id: "whatsapp",
-      label: "WhatsApp",
-      icon: MessageSquare,
-      href: "/contador/whatsapp",
-      active: pathname.startsWith("/contador/whatsapp"),
-    },
-    {
-      id: "correos",
-      label: "Correos",
-      icon: Mail,
-      href: "/contador/correos",
-      active: pathname.startsWith("/contador/correos"),
-    },
-    {
-      id: "sunat",
-      label: "Buzón SOL & SUNAT",
-      icon: ShieldCheck,
-      href: "/contador/sunat",
-      active: pathname.startsWith("/contador/sunat"),
-    },
-    {
-      id: "tributacion",
-      label: "SIRE & PLAME",
-      icon: Calculator,
-      href: "/contador/tributacion",
-      active: pathname.startsWith("/contador/tributacion"),
-    },
-    {
-      id: "portal-cliente",
-      label: "Portal del Cliente",
-      icon: ExternalLink,
-      href: "/portal-cliente?ruc=20512345671",
-      external: true,
-    },
-  ];
+  const navItems: Array<{
+    id: string;
+    label: string;
+    icon: any;
+    href: string;
+    active: boolean;
+    external?: boolean;
+  }> = [
+      {
+        id: "inicio",
+        label: "Inicio",
+        icon: LayoutGrid,
+        href: "/contador",
+        active: pathname === "/contador",
+      },
+      {
+        id: "clientes",
+        label: "Directorio de Clientes",
+        icon: Building2,
+        href: "/contador/clientes",
+        active: pathname.startsWith("/contador/clientes"),
+      },
+      {
+        id: "transacciones",
+        label: "Documentos",
+        icon: FileCheck2,
+        href: "/contador/transacciones",
+        active: pathname.startsWith("/contador/transacciones"),
+      },
+      {
+        id: "notificaciones",
+        label: "Notificaciones SUNAT",
+        icon: BellRing,
+        href: "/contador/notificaciones",
+        active: pathname.startsWith("/contador/notificaciones"),
+      },
+      {
+        id: "whatsapp",
+        label: "WhatsApp",
+        icon: MessageSquare,
+        href: "/contador/whatsapp",
+        active: pathname.startsWith("/contador/whatsapp"),
+      },
+      {
+        id: "correos",
+        label: "Correos",
+        icon: Mail,
+        href: "/contador/correos",
+        active: pathname.startsWith("/contador/correos"),
+      },
+      {
+        id: "sunat",
+        label: "Buzón SOL & SUNAT",
+        icon: ShieldCheck,
+        href: "/contador/sunat",
+        active: pathname.startsWith("/contador/sunat"),
+      },
+      {
+        id: "tributacion",
+        label: "SIRE & PLAME",
+        icon: Calculator,
+        href: "/contador/tributacion",
+        active: pathname.startsWith("/contador/tributacion"),
+      },
+    ];
 
   return (
     <div className="h-screen h-[100dvh] max-h-screen flex flex-col bg-slate-100/70 dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 transition-colors overflow-hidden">
@@ -360,17 +360,13 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
 
           { /* <ThemeToggle /> */}
 
-          {/* Campana con Badge Rojo "3" */}
           <div className="relative">
             <button
               onClick={() => setNotifModalOpen(!notifModalOpen)}
               className="p-2 rounded-md hover:bg-slate-800 text-slate-200 hover:text-white transition-colors relative cursor-pointer"
-              title="Notificaciones tributarias pendientes"
+              title="Notificaciones pendientes"
             >
               <Bell className="h-5 w-5" />
-              <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-xs">
-                3
-              </span>
             </button>
 
             {/* Popup desplegable de notificaciones */}
@@ -378,21 +374,9 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
               <div className="absolute right-0 mt-2 w-72 bg-[#131b2e] border border-slate-800 rounded-lg shadow-2xl p-3 z-50 text-xs text-slate-200 animate-fade-in">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
                   <span className="font-bold text-white">Alertas Tributarias</span>
-                  <Badge variant="destructive" className="text-[10px] h-4">3 pendientes</Badge>
                 </div>
                 <div className="space-y-2">
-                  <div className="p-2 rounded bg-amber-950/40 border border-amber-900 text-amber-200">
-                    <p className="font-semibold">Textiles Lima S.A.C.</p>
-                    <p className="text-[11px] text-amber-300">Falta voucher bancario por S/ 4,850.00</p>
-                  </div>
-                  <div className="p-2 rounded bg-red-950/40 border border-red-900 text-red-200">
-                    <p className="font-semibold">Ferretería El Norte</p>
-                    <p className="text-[11px] text-red-300">Comprobante observado / rechazado</p>
-                  </div>
-                  <div className="p-2 rounded bg-blue-950/40 border border-blue-900 text-blue-200">
-                    <p className="font-semibold">Col. María Auxiliadora</p>
-                    <p className="text-[11px] text-blue-300">Vencimiento SUNAT: 18 de Septiembre</p>
-                  </div>
+                  <p className="flex justify-center"> No hay alertas </p>
                 </div>
               </div>
             )}
@@ -1097,20 +1081,9 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                 <Server className="h-5 w-5 text-blue-600" />
                 Configuración del Servidor de Correo SMTP
               </DialogTitle>
-              <DialogDescription className="text-xs">
-                Configure sus credenciales de Gmail, Outlook, Amazon SES o su hosting corporativo para el despacho fehaciente de correos.
-              </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-3.5 text-xs py-3">
-              <div className="p-3 rounded-lg bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-blue-900 dark:text-blue-300 space-y-1">
-                <p className="font-semibold flex items-center gap-1.5">
-                  <Sparkles className="h-3.5 w-3.5" /> Recomendación de seguridad
-                </p>
-                <p className="text-[11px] leading-relaxed">
-                  Para cuentas <strong>Gmail</strong>, active la verificación en 2 pasos y genere una <em>"Contraseña de Aplicación"</em> de 16 letras desde su cuenta de Google.
-                </p>
-              </div>
 
               <div className="grid grid-cols-3 gap-2">
                 <div className="col-span-2 space-y-1">
@@ -1175,19 +1148,6 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                 />
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
-                <input
-                  type="checkbox"
-                  id="smtpSecure"
-                  checked={smtpSecure}
-                  onChange={(e) => setSmtpSecure(e.target.checked)}
-                  className="rounded text-blue-600 cursor-pointer"
-                />
-                <label htmlFor="smtpSecure" className="cursor-pointer text-xs text-slate-700 dark:text-slate-300">
-                  Usar SSL/TLS directo (Marcar solo para puerto 465, desmarcar para STARTTLS 587)
-                </label>
-              </div>
-
               {/* Prueba rápida de conexión */}
               <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2">
                 <Label className="text-xs font-semibold">Probar Conexión SMTP:</Label>
@@ -1227,7 +1187,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                 disabled={smtpSaving}
                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs cursor-pointer"
               >
-                {smtpSaving ? "Guardando..." : "Guardar Configuración"}
+                {smtpSaving ? "Guardando..." : "Guardar"}
               </Button>
             </DialogFooter>
           </form>
@@ -1240,11 +1200,8 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           <DialogHeader>
             <DialogTitle className="text-base font-bold flex items-center gap-2">
               <Mail className="h-5 w-5 text-blue-600" />
-              Detalle de Notificación por Correo
+              Detalle de Correo
             </DialogTitle>
-            <DialogDescription className="text-xs">
-              Registro del despacho para efectos de auditoría y prueba ante SUNAT
-            </DialogDescription>
           </DialogHeader>
 
           {correoSeleccionado && (
@@ -1265,7 +1222,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                   <span className="font-mono text-blue-600 font-semibold">{correoSeleccionado.destinatario}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">EMPRESA MYPE:</span>
+                  <span className="text-slate-400 block text-[10px]">CLIENTE:</span>
                   <span className="font-semibold">{correoSeleccionado.cliente_razon_social || "-"}</span>
                 </div>
               </div>
@@ -1283,13 +1240,6 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                   {correoSeleccionado.mensaje}
                 </div>
               </div>
-
-              {((correoSeleccionado as any).resultado_api || correoSeleccionado.error_log) && (
-                <div className="p-2.5 rounded-lg bg-blue-50/50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 text-[11px] text-slate-600 dark:text-slate-400">
-                  <span className="font-semibold text-blue-800 dark:text-blue-300">Respuesta de Servidor: </span>
-                  <span className="font-mono">{(correoSeleccionado as any).resultado_api || correoSeleccionado.error_log}</span>
-                </div>
-              )}
             </div>
           )}
 
@@ -1565,7 +1515,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                   </Badge>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">EMPRESA MYPE:</span>
+                  <span className="text-slate-400 block text-[10px]">CLIENTE:</span>
                   <span className="font-semibold">{buzonMensajeSeleccionado.cliente_razon_social || "Empresa"}</span>
                   <span className="block text-[10px] text-slate-400 font-mono">RUC: {buzonMensajeSeleccionado.cliente_ruc}</span>
                 </div>

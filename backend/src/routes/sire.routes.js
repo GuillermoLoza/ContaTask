@@ -9,6 +9,7 @@ router.use(authenticateToken);
 // Propuestas SIRE y Comprobantes
 router.get('/:clienteId/propuesta', SireController.getPropuesta);
 router.post('/:clienteId/extraer', SireController.extraerPropuesta);
+router.post('/:clienteId/test-api', SireController.testApiConexion);
 router.patch('/comprobantes/:comprobanteId/excluir', SireController.excluirComprobante);
 router.patch('/comprobantes/:comprobanteId/incluir', SireController.incluirComprobante);
 router.post('/:clienteId/comprobantes/manual', SireController.agregarManual);

@@ -164,7 +164,7 @@ export function CountryCodeSelect({
   };
 
   return (
-    <div ref={containerRef} className="relative inline-flex shrink-0">
+    <div ref={containerRef} className="relative inline-flex shrink-0 h-full">
       <button
         ref={triggerRef}
         type="button"
@@ -172,7 +172,7 @@ export function CountryCodeSelect({
         onClick={handleToggle}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className={`group inline-flex items-center justify-between gap-1.5 h-8 px-2.5 rounded-l-md border-r border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition-all cursor-pointer select-none shrink-0 focus:outline-none ${
+        className={`group inline-flex items-center justify-between gap-1.5 h-full px-2.5 rounded-l-md border-r border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition-all cursor-pointer select-none shrink-0 focus:outline-none ${
           isOpen ? "bg-blue-50/60 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400" : ""
         } ${className}`}
         title={`Código de país seleccionado: ${selectedCountry.country} (${selectedCountry.code})`}

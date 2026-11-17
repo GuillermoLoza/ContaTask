@@ -72,6 +72,25 @@ export interface DocumentoSustento {
   fecha_subida: string;
 }
 
+export interface BulkUploadDetail {
+  nombreOriginal: string;
+  transaccionId: number | null;
+  comprobante?: string;
+  documentoId?: number;
+  estado: "EXITO" | "ERROR";
+  nuevoEstado?: string;
+  error?: string;
+}
+
+export interface BulkUploadResponse {
+  success: boolean;
+  message: string;
+  total: number;
+  subidos: number;
+  fallidos: number;
+  detalles: BulkUploadDetail[];
+}
+
 export interface Notificacion {
   id: number;
   cliente_id: number;
@@ -260,6 +279,63 @@ export const api = {
       throw new Error(data.error || "Error al subir el sustento");
     }
     return data;
+  },
+
+  uploadDocumentosMasivo: async (
+    items: Array<{ file: File; transaccionId: number }>,
+    onProgress?: (percent: number) => void
+  ): Promise<BulkUploadResponse> => {
+    const token = getToken();
+    const formData = new FormData();
+
+    const asignaciones = items.map((item, index) => ({
+      fileIndex: index,
+      transaccionId: item.transaccionId,
+      originalName: item.file.name,
+    }));
+
+    formData.append("asignaciones", JSON.stringify(asignaciones));
+
+    items.forEach((item) => {
+      formData.append("archivos", item.file);
+    });
+
+    return new Promise<BulkUploadResponse>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `${API_BASE_URL}/documentos/upload-masivo`);
+
+      if (token) {
+        xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+      }
+
+      if (xhr.upload && onProgress) {
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            onProgress(percent);
+          }
+        };
+      }
+
+      xhr.onload = () => {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(data);
+          } else {
+            reject(new Error(data.error || `Error ${xhr.status} al procesar carga masiva`));
+          }
+        } catch {
+          reject(new Error(`Error ${xhr.status} procesando la respuesta del servidor`));
+        }
+      };
+
+      xhr.onerror = () => {
+        reject(new Error("Error de red al intentar subir los archivos de forma masiva"));
+      };
+
+      xhr.send(formData);
+    });
   },
 
   getDocumentoFileUrl: (id: number, download = false) => {
@@ -698,11 +774,30 @@ export const api = {
   getSirePropuesta: (clienteId: number | string, periodo: string, tipo: "RCE" | "RVIE" = "RCE"): Promise<{ success: boolean; propuesta: SirePropuesta; comprobantes: SireComprobante[]; metricas: SireMetricas }> =>
     request(`/sire/${clienteId}/propuesta?periodo=${periodo}&tipo=${tipo}`),
 
-  extraerSirePropuesta: (clienteId: number | string, periodo: string, tipo: "RCE" | "RVIE" = "RCE"): Promise<{ success: boolean; message: string; propuesta: SirePropuesta }> =>
+  extraerSirePropuesta: (clienteId: number | string, periodo: string, tipo: "RCE" | "RVIE" = "RCE", opciones?: { ambiente?: "prod" | "beta"; forzarApi?: boolean }): Promise<{ success: boolean; message: string; propuesta: SirePropuesta }> =>
     request(`/sire/${clienteId}/extraer`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ periodo, tipo })
+      body: JSON.stringify({ periodo, tipo, ...opciones })
+    }),
+
+  testSireApiConexion: (clienteId: number | string, ambiente: "prod" | "beta" = "prod"): Promise<{
+    success: boolean;
+    conectado: boolean;
+    modo: "API_SUNAT_OFICIAL" | "SIN_CREDENCIALES_API" | "SIN_CREDENCIALES_SOL" | "ERROR_CONEXION_SUNAT" | string;
+    mensaje: string;
+    tokenValidoHasta?: string;
+    expiresInSegundos?: number;
+    ambiente?: string;
+    ruc?: string;
+    razonSocial?: string;
+    faltantes?: string[];
+    error?: string;
+  }> =>
+    request(`/sire/${clienteId}/test-api`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ambiente })
     }),
 
   excluirSireComprobante: (comprobanteId: number, motivo?: string): Promise<{ success: boolean; comprobante: SireComprobante }> =>
@@ -1069,6 +1164,8 @@ export interface SirePropuesta {
   igv: number;
   total: number;
   ticket_sunat?: string;
+  origen_datos?: "API_SUNAT_OFICIAL" | "CRUCE_INTERNO" | string;
+  api_diagnostico?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -1103,6 +1200,7 @@ export interface SireMetricas {
   coincidentes: number;
   soloSunat: number;
   soloSistema: number;
+  discrepancias?: number;
   excluidos: number;
   baseAceptada: number;
   igvAceptado: number;

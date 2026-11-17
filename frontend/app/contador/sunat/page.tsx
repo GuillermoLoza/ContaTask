@@ -33,7 +33,7 @@ function limpiarTextoUI(str?: string | null): string {
   if (!str) return "";
   try {
     str = decodeURIComponent(str);
-  } catch {}
+  } catch { }
   return str
     .replace(/^ASUNTO:\s*/gi, "")
     .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(dec))
@@ -174,9 +174,6 @@ export default function ContadorSunatPage() {
             <ShieldCheck className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             SUNAT Operaciones en Línea (SOL) & Buzón Electrónico
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Gestión fehaciente de Usuario SOL y Clave SOL, generación de tokens de sesión, autologin 1-clic y auditoría de requerimientos.
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -282,11 +279,10 @@ export default function ContadorSunatPage() {
       <div className="flex border-b border-slate-200 dark:border-slate-800 gap-2">
         <button
           onClick={() => setActiveTab("BUZON")}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer ${
-            activeTab === "BUZON"
-              ? "border-blue-600 text-blue-600 dark:text-blue-400"
-              : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
-          }`}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer ${activeTab === "BUZON"
+            ? "border-blue-600 text-blue-600 dark:text-blue-400"
+            : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+            }`}
         >
           <Inbox className="h-4 w-4" />
           Buzón Electrónico SOL ({buzonMensajes.length})
@@ -294,11 +290,10 @@ export default function ContadorSunatPage() {
 
         <button
           onClick={() => setActiveTab("EMPRESAS")}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer ${
-            activeTab === "EMPRESAS"
-              ? "border-blue-600 text-blue-600 dark:text-blue-400"
-              : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
-          }`}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer ${activeTab === "EMPRESAS"
+            ? "border-blue-600 text-blue-600 dark:text-blue-400"
+            : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+            }`}
         >
           <Building2 className="h-4 w-4" />
           Estado de Conexión SOL por MYPE ({clientes.length})
@@ -306,11 +301,10 @@ export default function ContadorSunatPage() {
 
         <button
           onClick={() => setActiveTab("TOKEN_TEST")}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer ${
-            activeTab === "TOKEN_TEST"
-              ? "border-blue-600 text-blue-600 dark:text-blue-400"
-              : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
-          }`}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer ${activeTab === "TOKEN_TEST"
+            ? "border-blue-600 text-blue-600 dark:text-blue-400"
+            : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-200"
+            }`}
         >
           <Sparkles className="h-4 w-4" />
           Generador y Validador de Token SUNAT
@@ -384,22 +378,20 @@ export default function ContadorSunatPage() {
                 <button
                   type="button"
                   onClick={() => setFiltroCategoriaBuzon("TODOS")}
-                  className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                    filtroCategoriaBuzon === "TODOS"
-                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs"
-                      : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                  }`}
+                  className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${filtroCategoriaBuzon === "TODOS"
+                    ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs"
+                    : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                    }`}
                 >
                   Todos ({buzonMensajes.length})
                 </button>
                 <button
                   type="button"
                   onClick={() => setFiltroCategoriaBuzon("NOTIFICACION")}
-                  className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                    filtroCategoriaBuzon === "NOTIFICACION"
-                      ? "bg-blue-600 text-white shadow-xs"
-                      : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                  }`}
+                  className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${filtroCategoriaBuzon === "NOTIFICACION"
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                    }`}
                 >
                   <FileText className="h-3 w-3" />
                   Buzón Notificaciones ({totalNotificaciones})
@@ -407,11 +399,10 @@ export default function ContadorSunatPage() {
                 <button
                   type="button"
                   onClick={() => setFiltroCategoriaBuzon("MENSAJE")}
-                  className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                    filtroCategoriaBuzon === "MENSAJE"
-                      ? "bg-indigo-600 text-white shadow-xs"
-                      : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                  }`}
+                  className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${filtroCategoriaBuzon === "MENSAJE"
+                    ? "bg-indigo-600 text-white shadow-xs"
+                    : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                    }`}
                 >
                   <Mail className="h-3 w-3" />
                   Buzón Mensajes ({totalMensajes})
@@ -440,7 +431,7 @@ export default function ContadorSunatPage() {
                     <th className="p-3">Categoría</th>
                     <th className="p-3">Código / N°</th>
                     <th className="p-3">Tipo Documento</th>
-                    <th className="p-3">Empresa MYPE</th>
+                    <th className="p-3">Cliente</th>
                     <th className="p-3">Asunto / Resumen</th>
                     <th className="p-3 text-center">Plazo Subsanación</th>
                     <th className="p-3 text-center">Estado</th>
@@ -451,9 +442,8 @@ export default function ContadorSunatPage() {
                   {mensajesFiltrados.map((msg) => (
                     <tr
                       key={msg.id}
-                      className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors ${
-                        msg.estado === "URGENTE" ? "bg-amber-50/20 dark:bg-amber-950/10" : ""
-                      }`}
+                      className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors ${msg.estado === "URGENTE" ? "bg-amber-50/20 dark:bg-amber-950/10" : ""
+                        }`}
                     >
                       <td className="p-3 font-mono text-[11px] whitespace-nowrap text-slate-500">
                         {new Date(msg.fecha_deposito).toLocaleDateString()}
@@ -556,7 +546,7 @@ export default function ContadorSunatPage() {
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 font-semibold text-slate-600 dark:text-slate-300">
                   <tr>
-                    <th className="p-3">Empresa MYPE</th>
+                    <th className="p-3">Cliente</th>
                     <th className="p-3">RUC</th>
                     <th className="p-3">Usuario SOL</th>
                     <th className="p-3 text-center">Clave SOL</th>

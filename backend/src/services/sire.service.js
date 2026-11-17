@@ -1,12 +1,31 @@
 import { db } from '../config/database.js';
 import { SunatService } from './sunat.service.js';
+import { SunatSireApiClient } from './sire-api.client.js';
 import { whatsappService } from './whatsapp.service.js';
 import { emailService } from './email.service.js';
 
 /**
+ * Normaliza cualquier formato de fecha a string ISO 'YYYY-MM-DD' para compatibilidad con PostgreSQL DATE
+ */
+function formatearFechaIso(fecha, fallback = '2026-08-01') {
+  if (!fecha) return fallback;
+  if (fecha instanceof Date) {
+    if (isNaN(fecha.getTime())) return fallback;
+    return fecha.toISOString().split('T')[0];
+  }
+  const str = String(fecha);
+  if (str.includes('T')) return str.split('T')[0];
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  const parsed = new Date(fecha);
+  if (!isNaN(parsed.getTime())) return parsed.toISOString().split('T')[0];
+  return fallback;
+}
+
+/**
  * Servicio SIRE (Sistema Integrado de Registros Electrónicos)
  * Implementa los requerimientos RF-T01, RF-T02, RF-T03 y RF-T04 de la tesis:
- * - Extracción y cruce de propuestas RVIE (Ventas) y RCE (Compras) de SUNAT
+ * - Integración oficial con el Servicio Web API SUNAT SIRE (OAuth 2.0 y consultas RCE / RVIE)
+ * - Extracción y cruce inteligente de propuestas RVIE (Ventas) y RCE (Compras)
  * - Detección de comprobantes irregulares, faltantes y discrepancias de montos
  * - Exclusión de comprobantes no deducibles y adición de recibos de servicios públicos
  * - Generación de propuesta preliminar y consolidada
@@ -40,13 +59,125 @@ export class SireService {
   }
 
   /**
-   * RF-T01: Extrae e importa la propuesta oficial de compras o ventas desde SIRE / SUNAT
+   * Cruce inteligente entre comprobantes oficiales de SUNAT y las transacciones internas de ContaTask
    */
-  static async extraerPropuestaSire(clienteId, periodo, tipoRegistro = 'RCE') {
+  static cruceConTransacciones(comprobantesSunat, transaccionesInternas, cliente, periodo, tipoRegistro, propuestaId) {
+    const comprobantesResultado = [];
+    const transaccionesUsadas = new Set();
+
+    // 1. Cruzar cada comprobante de SUNAT contra las transacciones registradas
+    for (const c of comprobantesSunat) {
+      const cSerie = (c.serie || '').trim().toUpperCase();
+      const cNum = String(c.numero || '').trim().replace(/^0+/, ''); // sin ceros a la izquierda
+      const cNumCompleto = String(c.numero || '').trim();
+
+      // Búsqueda por coincidencia de serie y número
+      let match = transaccionesInternas.find(t => {
+        if (transaccionesUsadas.has(t.id)) return false;
+        const tNum = (t.numero_comprobante || '').trim().toUpperCase();
+        if (!tNum) return false;
+
+        const contieneSerie = tNum.includes(cSerie);
+        const contieneNum = tNum.includes(cNumCompleto) || (cNum.length > 0 && tNum.includes(cNum));
+        return contieneSerie && contieneNum;
+      });
+
+      // Búsqueda alternativa por RUC emisor y monto exacto o cercano (tolerancia S/ 0.05)
+      if (!match && c.emisor_ruc) {
+        match = transaccionesInternas.find(t => {
+          if (transaccionesUsadas.has(t.id)) return false;
+          const rucMatch = t.emisor_ruc && t.emisor_ruc.trim() === c.emisor_ruc.trim();
+          const montoMatch = Math.abs(Number(t.monto_total) - Number(c.monto_total)) <= 0.05;
+          return rucMatch && montoMatch;
+        });
+      }
+
+      let estadoCruce = 'SOLO_EN_SUNAT';
+      let transaccionId = null;
+      let motivo = null;
+
+      if (match) {
+        transaccionesUsadas.add(match.id);
+        transaccionId = match.id;
+        const diffMonto = Math.abs(Number(match.monto_total) - Number(c.monto_total));
+
+        if (diffMonto <= 0.05) {
+          estadoCruce = 'COINCIDE';
+        } else {
+          estadoCruce = 'DISCREPANCIA_MONTO';
+          motivo = `Discrepancia en importe: SUNAT registra S/ ${Number(c.monto_total).toFixed(2)} vs S/ ${Number(match.monto_total).toFixed(2)} registrado en el sistema.`;
+        }
+      }
+
+      comprobantesResultado.push({
+        sire_propuesta_id: propuestaId,
+        cliente_id: cliente.id,
+        periodo: periodo,
+        tipo_registro: tipoRegistro,
+        tipo_comprobante: c.tipo_comprobante,
+        serie: c.serie,
+        numero: c.numero,
+        emisor_ruc: c.emisor_ruc,
+        emisor_razon_social: c.emisor_razon_social,
+        fecha_emision: formatearFechaIso(c.fecha_emision, `${periodo}-10`),
+        fecha_vcto: c.fecha_vcto ? formatearFechaIso(c.fecha_vcto, `${periodo}-28`) : null,
+        moneda: c.moneda,
+        tipo_cambio: c.tipo_cambio || 1.000,
+        base_imponible: c.base_imponible,
+        igv: c.igv,
+        monto_total: c.monto_total,
+        estado_cruce: estadoCruce,
+        motivo_exclusion: motivo,
+        transaccion_id: transaccionId,
+        es_manual: false,
+        created_at: new Date()
+      });
+    }
+
+    // 2. Identificar transacciones internas que NO figuran en la propuesta de SUNAT (SOLO_EN_SISTEMA)
+    for (const trx of transaccionesInternas) {
+      if (!transaccionesUsadas.has(trx.id)) {
+        const baseImp = Number(trx.monto_total) - Number(trx.monto_igv);
+        const partesNumero = (trx.numero_comprobante || 'F001-00000001').split('-');
+
+        comprobantesResultado.push({
+          sire_propuesta_id: propuestaId,
+          cliente_id: cliente.id,
+          periodo: periodo,
+          tipo_registro: tipoRegistro,
+          tipo_comprobante: trx.comprobante_tipo === 'FACTURA' ? '01' : (trx.comprobante_tipo === 'BOLETA' ? '03' : '02'),
+          serie: partesNumero[0] || 'F001',
+          numero: partesNumero[1] || '00000001',
+          emisor_ruc: trx.emisor_ruc || (tipoRegistro === 'RVIE' ? cliente.ruc : '20100012345'),
+          emisor_razon_social: trx.emisor_razon_social || (tipoRegistro === 'RVIE' ? cliente.razon_social : 'PROVEEDOR LOCAL'),
+          fecha_emision: formatearFechaIso(trx.fecha_emision, `${periodo}-10`),
+          fecha_vcto: `${periodo}-28`,
+          moneda: trx.moneda || 'PEN',
+          tipo_cambio: 1.000,
+          base_imponible: baseImp > 0 ? baseImp : trx.monto_total,
+          igv: Number(trx.monto_igv) || 0,
+          monto_total: Number(trx.monto_total),
+          estado_cruce: 'SOLO_EN_SISTEMA',
+          motivo_exclusion: 'Comprobante registrado en ContaTask pero aún no reflejado en la propuesta electrónica de SUNAT.',
+          transaccion_id: trx.id,
+          es_manual: false,
+          created_at: new Date()
+        });
+      }
+    }
+
+    return comprobantesResultado;
+  }
+
+  /**
+   * RF-T01: Extrae e importa la propuesta oficial de compras o ventas desde la API SUNAT SIRE
+   * Si no se configuran credenciales o SUNAT no responde, aplica modo asistido con transacciones internas.
+   */
+  static async extraerPropuestaSire(clienteId, periodo, tipoRegistro = 'RCE', opciones = {}) {
     const cliente = await db('clientes').where({ id: clienteId }).first();
     if (!cliente) throw new Error('Cliente MYPE no encontrado');
 
-    // Limpiar propuestas previas del periodo si están en estado PROPUESTA_SUNAT
+    // Limpiar propuestas previas no consolidadas
     await db('sire_comprobantes')
       .where({ cliente_id: clienteId, periodo, tipo_registro: tipoRegistro, es_manual: false })
       .del();
@@ -56,7 +187,6 @@ export class SireService {
       .del();
 
     // Obtener transacciones internas de ContaTask para este periodo y tipo
-    const tipoOperacionFiltro = tipoRegistro === 'RCE' ? 'COMPRA' : 'VENTA';
     const transaccionesInternas = await db('transacciones')
       .where({ cliente_id: clienteId, periodo })
       .andWhere(function() {
@@ -67,6 +197,74 @@ export class SireService {
         }
       });
 
+    let origenDatos = 'CRUCE_INTERNO';
+    let apiDiagnostico = null;
+    let ticketSunat = `TK-${Date.now().toString().slice(-8)}`;
+    let comprobantesOficiales = null;
+
+    // Verificar si el cliente cuenta con credenciales para la API Oficial de SUNAT
+    const tieneCredencialesApi = Boolean(
+      cliente.sunat_client_id &&
+      cliente.sunat_client_secret &&
+      cliente.usuario_sol &&
+      cliente.clave_sol
+    );
+
+    if (tieneCredencialesApi) {
+      try {
+        // 1. Obtener token OAuth2 oficial (usar existente si aún es válido)
+        let token = cliente.sunat_token;
+        const tokenValido = cliente.sunat_token_expires_at && new Date(cliente.sunat_token_expires_at) > new Date(Date.now() + 60000);
+
+        if (!token || !tokenValido) {
+          const authRes = await SunatSireApiClient.solicitarToken({
+            clientId: cliente.sunat_client_id,
+            clientSecret: cliente.sunat_client_secret,
+            ruc: cliente.ruc,
+            usuarioSol: cliente.usuario_sol,
+            claveSol: cliente.clave_sol
+          });
+
+          token = authRes.accessToken;
+          await db('clientes').where({ id: cliente.id }).update({
+            sunat_token: authRes.accessToken,
+            sunat_token_expires_at: authRes.expiresAt,
+            sunat_estado_conexion: 'CONECTADO',
+            sunat_ultimo_acceso: new Date(),
+            sunat_ultimo_error: null
+          });
+        }
+
+        // 2. Consultar propuesta oficial desde el servicio Web API de SUNAT
+        const resApi = await SunatSireApiClient.consultarPropuestaComprobantes({
+          token,
+          periodo,
+          tipoRegistro,
+          ambiente: opciones.ambiente || 'prod'
+        });
+
+        if (resApi.success && Array.isArray(resApi.comprobantes)) {
+          comprobantesOficiales = resApi.comprobantes.map(item =>
+            SunatSireApiClient.normalizarComprobante(item, {
+              tipoRegistro,
+              clienteRuc: cliente.ruc,
+              defaultPeriodo: periodo
+            })
+          );
+          origenDatos = 'API_SUNAT_OFICIAL';
+          ticketSunat = `SUNAT-${tipoRegistro}-${periodo.replace(/\D/g, '')}-${Date.now().toString().slice(-6)}`;
+          apiDiagnostico = `Conexión oficial con API SUNAT SIRE exitosa. Se obtuvieron ${comprobantesOficiales.length} comprobantes del servicio web.`;
+        }
+      } catch (apiErr) {
+        console.warn(`[SIRE API] Consulta a API oficial de SUNAT no disponible: ${apiErr.message}`);
+        apiDiagnostico = `Aviso API SUNAT (${apiErr.status || 'Red'}): ${apiErr.message}. Se activó respaldo asistido con transacciones internas.`;
+        origenDatos = 'CRUCE_INTERNO';
+      }
+    } else {
+      apiDiagnostico = 'Modo Asistido: Para consultar directamente el servicio web de SUNAT, configure Client ID y Clave SOL en Gestión de Clientes.';
+      origenDatos = 'CRUCE_INTERNO';
+    }
+
     // 1. Crear registro maestro de la propuesta
     const [propuestaIdRes] = await db('sire_propuestas').insert({
       cliente_id: clienteId,
@@ -74,117 +272,131 @@ export class SireService {
       periodo: periodo,
       tipo_registro: tipoRegistro,
       estado: 'PROPUESTA_SUNAT',
-      ticket_sunat: `TK-${Date.now().toString().slice(-8)}`,
+      ticket_sunat: ticketSunat,
+      origen_datos: origenDatos,
+      api_diagnostico: apiDiagnostico,
       created_at: new Date(),
       updated_at: new Date()
     }).returning('id');
 
     const propuestaId = typeof propuestaIdRes === 'object' ? propuestaIdRes.id : propuestaIdRes;
 
-    // 2. Comprobantes simulados fieles de la propuesta SUNAT (basados en proveedores reales de Perú)
-    const comprobantesAInsertar = [];
+    // 2. Procesar comprobantes:
+    let comprobantesAInsertar = [];
 
-    // Comprobantes cruzados con las transacciones internas
-    for (const trx of transaccionesInternas) {
-      const baseImp = Number(trx.monto_total) - Number(trx.monto_igv);
-      comprobantesAInsertar.push({
-        sire_propuesta_id: propuestaId,
-        cliente_id: clienteId,
-        periodo: periodo,
-        tipo_registro: tipoRegistro,
-        tipo_comprobante: trx.comprobante_tipo === 'FACTURA' ? '01' : (trx.comprobante_tipo === 'BOLETA' ? '03' : '02'),
-        serie: trx.numero_comprobante ? trx.numero_comprobante.split('-')[0] : 'F001',
-        numero: trx.numero_comprobante ? trx.numero_comprobante.split('-')[1] || '0001' : '00000001',
-        emisor_ruc: trx.emisor_ruc || '20100012345',
-        emisor_razon_social: trx.emisor_razon_social || 'Proveedor SUNAT S.A.',
-        fecha_emision: trx.fecha_emision || `${periodo}-10`,
-        fecha_vcto: `${periodo}-28`,
-        moneda: trx.moneda || 'PEN',
-        tipo_cambio: 1.000,
-        base_imponible: baseImp > 0 ? baseImp : trx.monto_total,
-        igv: Number(trx.monto_igv) || 0,
-        monto_total: Number(trx.monto_total),
-        estado_cruce: 'COINCIDE',
-        transaccion_id: trx.id,
-        es_manual: false,
-        created_at: new Date()
-      });
-    }
-
-    // 3. Añadir casos típicos de la vida real de un contador MYPE (RF-T01 y RF-T02):
-    if (tipoRegistro === 'RCE') {
-      // Caso A: Comprobante en SUNAT pero NO registrado en el sistema del cliente (ej. compra no informada)
-      comprobantesAInsertar.push({
-        sire_propuesta_id: propuestaId,
-        cliente_id: clienteId,
-        periodo: periodo,
-        tipo_registro: 'RCE',
-        tipo_comprobante: '01',
-        serie: 'E001',
-        numero: '00004921',
-        emisor_ruc: '20551982731',
-        emisor_razon_social: 'Sodimac Perú S.A.',
-        fecha_emision: `${periodo}-14`,
-        fecha_vcto: `${periodo}-30`,
-        moneda: 'PEN',
-        tipo_cambio: 1.000,
-        base_imponible: 850.00,
-        igv: 153.00,
-        monto_total: 1003.00,
-        estado_cruce: 'SOLO_EN_SUNAT',
-        transaccion_id: null,
-        es_manual: false,
-        created_at: new Date()
-      });
-
-      // Caso B: Gasto personal / No deducible que debe ser excluido (ej. combustible de auto personal o supermercado)
-      comprobantesAInsertar.push({
-        sire_propuesta_id: propuestaId,
-        cliente_id: clienteId,
-        periodo: periodo,
-        tipo_registro: 'RCE',
-        tipo_comprobante: '01',
-        serie: 'F120',
-        numero: '00084729',
-        emisor_ruc: '20100070970',
-        emisor_razon_social: 'Supermercados Peruanos S.A. (Plaza Vea)',
-        fecha_emision: `${periodo}-18`,
-        fecha_vcto: `${periodo}-20`,
-        moneda: 'PEN',
-        tipo_cambio: 1.000,
-        base_imponible: 420.00,
-        igv: 75.60,
-        monto_total: 495.60,
-        estado_cruce: 'EXCLUIDO',
-        motivo_exclusion: 'Compra personal de alimentos ajena al giro de la empresa (No deducible Art. 44 LIR)',
-        transaccion_id: null,
-        es_manual: false,
-        created_at: new Date()
-      });
+    if (comprobantesOficiales && comprobantesOficiales.length > 0) {
+      // Cruzar comprobantes de la API oficial contra transacciones de ContaTask
+      comprobantesAInsertar = this.cruceConTransacciones(
+        comprobantesOficiales,
+        transaccionesInternas,
+        cliente,
+        periodo,
+        tipoRegistro,
+        propuestaId
+      );
     } else {
-      // RVIE (Ventas)
-      comprobantesAInsertar.push({
-        sire_propuesta_id: propuestaId,
-        cliente_id: clienteId,
-        periodo: periodo,
-        tipo_registro: 'RVIE',
-        tipo_comprobante: '01',
-        serie: 'F001',
-        numero: '00001092',
-        emisor_ruc: cliente.ruc,
-        emisor_razon_social: cliente.razon_social,
-        fecha_emision: `${periodo}-05`,
-        fecha_vcto: `${periodo}-20`,
-        moneda: 'PEN',
-        tipo_cambio: 1.000,
-        base_imponible: 12500.00,
-        igv: 2250.00,
-        monto_total: 14750.00,
-        estado_cruce: 'COINCIDE',
-        transaccion_id: null,
-        es_manual: false,
-        created_at: new Date()
-      });
+      // Modo Asistido: Cruzar transacciones internas y agregar casos representativos de Perú
+      for (const trx of transaccionesInternas) {
+        const baseImp = Number(trx.monto_total) - Number(trx.monto_igv);
+        comprobantesAInsertar.push({
+          sire_propuesta_id: propuestaId,
+          cliente_id: clienteId,
+          periodo: periodo,
+          tipo_registro: tipoRegistro,
+          tipo_comprobante: trx.comprobante_tipo === 'FACTURA' ? '01' : (trx.comprobante_tipo === 'BOLETA' ? '03' : '02'),
+          serie: trx.numero_comprobante ? trx.numero_comprobante.split('-')[0] : 'F001',
+          numero: trx.numero_comprobante ? trx.numero_comprobante.split('-')[1] || '0001' : '00000001',
+          emisor_ruc: trx.emisor_ruc || '20100012345',
+          emisor_razon_social: trx.emisor_razon_social || 'Proveedor SUNAT S.A.',
+          fecha_emision: formatearFechaIso(trx.fecha_emision, `${periodo}-10`),
+          fecha_vcto: `${periodo}-28`,
+          moneda: trx.moneda || 'PEN',
+          tipo_cambio: 1.000,
+          base_imponible: baseImp > 0 ? baseImp : trx.monto_total,
+          igv: Number(trx.monto_igv) || 0,
+          monto_total: Number(trx.monto_total),
+          estado_cruce: 'COINCIDE',
+          transaccion_id: trx.id,
+          es_manual: false,
+          created_at: new Date()
+        });
+      }
+
+      // Casos típicos para MYPEs peruanas en modo asistido
+      if (tipoRegistro === 'RCE') {
+        // Caso A: Comprobante en SUNAT pero NO registrado por el cliente (ej. Sodimac)
+        comprobantesAInsertar.push({
+          sire_propuesta_id: propuestaId,
+          cliente_id: clienteId,
+          periodo: periodo,
+          tipo_registro: 'RCE',
+          tipo_comprobante: '01',
+          serie: 'E001',
+          numero: '00004921',
+          emisor_ruc: '20551982731',
+          emisor_razon_social: 'Sodimac Perú S.A.',
+          fecha_emision: `${periodo}-14`,
+          fecha_vcto: `${periodo}-30`,
+          moneda: 'PEN',
+          tipo_cambio: 1.000,
+          base_imponible: 850.00,
+          igv: 153.00,
+          monto_total: 1003.00,
+          estado_cruce: 'SOLO_EN_SUNAT',
+          transaccion_id: null,
+          es_manual: false,
+          created_at: new Date()
+        });
+
+        // Caso B: Gasto no deducible Art. 44 LIR (ej. supermercado)
+        comprobantesAInsertar.push({
+          sire_propuesta_id: propuestaId,
+          cliente_id: clienteId,
+          periodo: periodo,
+          tipo_registro: 'RCE',
+          tipo_comprobante: '01',
+          serie: 'F120',
+          numero: '00084729',
+          emisor_ruc: '20100070970',
+          emisor_razon_social: 'Supermercados Peruanos S.A. (Plaza Vea)',
+          fecha_emision: `${periodo}-18`,
+          fecha_vcto: `${periodo}-20`,
+          moneda: 'PEN',
+          tipo_cambio: 1.000,
+          base_imponible: 420.00,
+          igv: 75.60,
+          monto_total: 495.60,
+          estado_cruce: 'EXCLUIDO',
+          motivo_exclusion: 'Compra personal de alimentos ajena al giro de la empresa (No deducible Art. 44 LIR)',
+          transaccion_id: null,
+          es_manual: false,
+          created_at: new Date()
+        });
+      } else {
+        // RVIE (Ventas)
+        comprobantesAInsertar.push({
+          sire_propuesta_id: propuestaId,
+          cliente_id: clienteId,
+          periodo: periodo,
+          tipo_registro: 'RVIE',
+          tipo_comprobante: '01',
+          serie: 'F001',
+          numero: '00001092',
+          emisor_ruc: cliente.ruc,
+          emisor_razon_social: cliente.razon_social,
+          fecha_emision: `${periodo}-05`,
+          fecha_vcto: `${periodo}-20`,
+          moneda: 'PEN',
+          tipo_cambio: 1.000,
+          base_imponible: 12500.00,
+          igv: 2250.00,
+          monto_total: 14750.00,
+          estado_cruce: 'COINCIDE',
+          transaccion_id: null,
+          es_manual: false,
+          created_at: new Date()
+        });
+      }
     }
 
     if (comprobantesAInsertar.length > 0) {
@@ -195,6 +407,43 @@ export class SireService {
     await this.recalcularTotalesPropuesta(propuestaId);
 
     return db('sire_propuestas').where({ id: propuestaId }).first();
+  }
+
+  /**
+   * Diagnóstico y prueba de conexión contra el Servicio Web API SUNAT SIRE
+   */
+  static async testConexionApiSire(clienteId, { ambiente = 'prod' } = {}) {
+    const cliente = await db('clientes').where({ id: clienteId }).first();
+    if (!cliente) throw new Error('Cliente MYPE no encontrado');
+
+    const resultado = await SunatSireApiClient.probarConexion({
+      clientId: cliente.sunat_client_id,
+      clientSecret: cliente.sunat_client_secret,
+      ruc: cliente.ruc,
+      usuarioSol: cliente.usuario_sol,
+      claveSol: cliente.clave_sol,
+      ambiente
+    });
+
+    if (resultado.conectado) {
+      await db('clientes').where({ id: cliente.id }).update({
+        sunat_estado_conexion: 'CONECTADO',
+        sunat_ultimo_acceso: new Date(),
+        sunat_ultimo_error: null
+      });
+    } else if (resultado.modo === 'ERROR_CONEXION_SUNAT') {
+      await db('clientes').where({ id: cliente.id }).update({
+        sunat_estado_conexion: 'ERROR',
+        sunat_ultimo_error: resultado.mensaje
+      });
+    }
+
+    return {
+      clienteId: cliente.id,
+      razonSocial: cliente.razon_social,
+      ruc: cliente.ruc,
+      ...resultado
+    };
   }
 
   /**
@@ -462,7 +711,7 @@ export class SireService {
     const filename = `LE${cliente.ruc}${cleanPeriod}00${codLibro}021111.txt`;
 
     // Líneas con formato pipe delimitado (|)
-    const lineas = comprobantes.map((c, idx) => {
+    const lineas = comprobantes.map((c) => {
       const fEmision = c.fecha_emision.toISOString ? c.fecha_emision.toISOString().split('T')[0] : String(c.fecha_emision);
       const fVcto = c.fecha_vcto ? (c.fecha_vcto.toISOString ? c.fecha_vcto.toISOString().split('T')[0] : String(c.fecha_vcto)) : '';
       const [ano, mes, dia] = fEmision.split('-');
@@ -516,9 +765,9 @@ export class SireService {
       .where({ id: propuestaId })
       .update({
         total_comprobantes: totalComps,
-        base_imponible: base,
-        igv: igv,
-        total: total,
+        base_imponible: Math.round(base * 100) / 100,
+        igv: Math.round(igv * 100) / 100,
+        total: Math.round(total * 100) / 100,
         updated_at: new Date()
       });
   }
@@ -531,6 +780,7 @@ export class SireService {
     const coincidentes = comprobantes.filter(c => c.estado_cruce === 'COINCIDE').length;
     const soloSunat = comprobantes.filter(c => c.estado_cruce === 'SOLO_EN_SUNAT').length;
     const soloSistema = comprobantes.filter(c => c.estado_cruce === 'SOLO_EN_SISTEMA').length;
+    const discrepancias = comprobantes.filter(c => c.estado_cruce === 'DISCREPANCIA_MONTO').length;
     const excluidos = comprobantes.filter(c => c.estado_cruce === 'EXCLUIDO').length;
 
     const baseAceptada = comprobantes
@@ -546,9 +796,10 @@ export class SireService {
       coincidentes,
       soloSunat,
       soloSistema,
+      discrepancias,
       excluidos,
-      baseAceptada,
-      igvAceptado,
+      baseAceptada: Math.round(baseAceptada * 100) / 100,
+      igvAceptado: Math.round(igvAceptado * 100) / 100,
       porcentajeCoincidencia: total > 0 ? Math.round((coincidentes / total) * 100) : 100
     };
   }

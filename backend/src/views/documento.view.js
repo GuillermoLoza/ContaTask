@@ -32,4 +32,22 @@ export class DocumentoView {
   static renderList(res, documentos) {
     return ResponseView.success(res, { documentos });
   }
+
+  /**
+   * Renderizar resultado de carga masiva de sustentos
+   */
+  static renderBulkUploadSuccess(res, { total, subidos, fallidos, detalles }) {
+    return ResponseView.success(
+      res,
+      {
+        success: true,
+        message: `Carga masiva procesada: ${subidos} de ${total} archivo(s) procesados exitosamente.`,
+        total,
+        subidos,
+        fallidos,
+        detalles
+      },
+      201
+    );
+  }
 }

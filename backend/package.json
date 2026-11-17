@@ -6,7 +6,7 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "node --watch --env-file=.env src/server.js",
-    "start": "node --env-file=.env src/server.js",
+    "start": "node src/server.js",
     "db:setup": "node database/setup_postgres.js",
     "seed": "node --env-file=.env src/data/seed.js",
     "test": "node --env-file=.env src/test-api.js"

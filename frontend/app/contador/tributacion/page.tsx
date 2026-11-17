@@ -25,7 +25,11 @@ import {
   HelpCircle,
   Clock,
   Sparkles,
-  Info
+  Info,
+  Globe,
+  ShieldCheck,
+  ExternalLink,
+  Lock
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,6 +63,10 @@ export default function ContadorTributacionPage() {
   const [sireLoading, setSireLoading] = useState<boolean>(false);
   const [sireActionLoading, setSireActionLoading] = useState<boolean>(false);
   const [sireFiltroEstado, setSireFiltroEstado] = useState<string>("TODOS");
+  const [sireAmbiente, setSireAmbiente] = useState<"prod" | "beta">("prod");
+  const [sireTestingApi, setSireTestingApi] = useState<boolean>(false);
+  const [modalSireApiOpen, setModalSireApiOpen] = useState<boolean>(false);
+  const [sireApiTestResult, setSireApiTestResult] = useState<any | null>(null);
 
   // Modal Exclusión SIRE
   const [modalExcluirOpen, setModalExcluirOpen] = useState(false);
@@ -171,17 +179,43 @@ export default function ContadorTributacionPage() {
     }
   };
 
-  const handleExtraerSire = async () => {
+  const handleExtraerSire = async (forzar?: boolean) => {
     if (!clienteSeleccionado) return;
     setSireActionLoading(true);
     try {
-      await api.extraerSirePropuesta(clienteSeleccionado.id, selectedPeriodo, sireTipo);
+      const res = await api.extraerSirePropuesta(clienteSeleccionado.id, selectedPeriodo, sireTipo, {
+        ambiente: sireAmbiente,
+        forzarApi: Boolean(forzar)
+      });
       await cargarSire();
-      showNotification(`Propuesta SIRE (${sireTipo === "RCE" ? "Compras" : "Ventas"}) sincronizada exitosamente con SUNAT.`);
+      if (res?.propuesta?.origen_datos === "API_SUNAT_OFICIAL") {
+        showNotification(`Propuesta SIRE oficial extraída exitosamente de SUNAT (Ticket: ${res.propuesta.ticket_sunat || "OK"}).`);
+      } else {
+        showNotification(res?.message || `Propuesta SIRE (${sireTipo === "RCE" ? "Compras" : "Ventas"}) sincronizada exitosamente.`);
+      }
     } catch (err: any) {
       showNotification(err.message || "Error al sincronizar con SIRE", true);
     } finally {
       setSireActionLoading(false);
+    }
+  };
+
+  const handleTestSireApi = async () => {
+    if (!clienteSeleccionado) return;
+    setSireTestingApi(true);
+    try {
+      const res = await api.testSireApiConexion(clienteSeleccionado.id, sireAmbiente);
+      setSireApiTestResult(res);
+      setModalSireApiOpen(true);
+      if (res.conectado) {
+        showNotification("Conexión con el servicio Web API SUNAT SIRE validada exitosamente.");
+      } else {
+        showNotification(res.mensaje || "Diagnóstico de conexión API SUNAT obtenido.", true);
+      }
+    } catch (err: any) {
+      showNotification(err.message || "Error al verificar conexión con la API SUNAT", true);
+    } finally {
+      setSireTestingApi(false);
     }
   };
 
@@ -364,7 +398,7 @@ export default function ContadorTributacionPage() {
   });
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 max-w-7xl mx-auto animate-fade-in pb-12">
       {/* ALERTS */}
       {successMsg && (
         <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
@@ -379,69 +413,65 @@ export default function ContadorTributacionPage() {
         </div>
       )}
 
-      {/* HEADER PRINCIPAL */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-blue-700 via-indigo-700 to-sky-700 text-white shadow-xl">
+      {/* 1. CABECERA PRINCIPAL */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-sm">
-              Capítulo 5 • Objetivo O2
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/80 text-white">
-              SUNAT RESTful API Live
-            </span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-            Módulo Tributario: Integración SIRE & PLAME
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5 tracking-tight">
+            <Calculator className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            SIRE & PLAME
           </h1>
-          <p className="text-blue-100 text-sm mt-1 max-w-2xl">
-            Sincronización de propuestas RVIE/RCE, conciliación automática de comprobantes, liquidación de impuestos mensuales (Form. 621) y planilla electrónica (PDT 0601).
-          </p>
         </div>
 
         {/* SELECTORES DE CLIENTE Y PERIODO */}
-        <div className="flex flex-wrap items-center gap-3 bg-white/10 p-3 rounded-xl backdrop-blur-md border border-white/20">
-          <div className="space-y-1">
-            <label className="text-[11px] font-medium uppercase text-blue-200">Cliente MYPE</label>
-            <select
-              value={clienteSeleccionado?.id || ""}
-              onChange={(e) => setSelectedClienteId(Number(e.target.value))}
-              className="bg-white text-slate-800 dark:bg-slate-900 dark:text-slate-100 text-sm rounded-lg px-3 py-1.5 font-medium border border-blue-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            >
-              {clientes.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.razon_social} ({c.ruc})
-                </option>
-              ))}
-            </select>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
+            <Building2 className="h-4 w-4 text-slate-500 dark:text-slate-400 shrink-0" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Cliente</span>
+              <select
+                value={clienteSeleccionado?.id || ""}
+                onChange={(e) => setSelectedClienteId(Number(e.target.value))}
+                className="bg-transparent text-slate-900 dark:text-slate-100 text-xs font-semibold focus:outline-hidden cursor-pointer max-w-[200px] sm:max-w-[240px] truncate"
+              >
+                {clientes.map((c) => (
+                  <option key={c.id} value={c.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                    {c.razon_social} ({c.ruc})
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[11px] font-medium uppercase text-blue-200">Periodo Fiscal</label>
-            <select
-              value={selectedPeriodo}
-              onChange={(e) => setSelectedPeriodo(e.target.value)}
-              className="bg-white text-slate-800 dark:bg-slate-900 dark:text-slate-100 text-sm rounded-lg px-3 py-1.5 font-medium border border-blue-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
-            >
-              <optgroup label="Ejercicio 2026">
-                <option value="2026-08">2026 - Agosto</option>
-                <option value="2026-07">2026 - Julio</option>
-                <option value="2026-06">2026 - Junio</option>
-              </optgroup>
-              <optgroup label="Ejercicio 2025">
-                <option value="2025-12">2025 - Diciembre</option>
-                <option value="2025-11">2025 - Noviembre</option>
-                <option value="2025-10">2025 - Octubre</option>
-                <option value="2025-09">2025 - Setiembre</option>
-                <option value="2025-08">2025 - Agosto</option>
-                <option value="2025-07">2025 - Julio</option>
-                <option value="2025-06">2025 - Junio</option>
-                <option value="2025-05">2025 - Mayo</option>
-                <option value="2025-04">2025 - Abril</option>
-                <option value="2025-03">2025 - Marzo</option>
-                <option value="2025-02">2025 - Febrero</option>
-                <option value="2025-01">2025 - Enero</option>
-              </optgroup>
-            </select>
+          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
+            <Calendar className="h-4 w-4 text-slate-500 dark:text-slate-400 shrink-0" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Periodo Fiscal</span>
+              <select
+                value={selectedPeriodo}
+                onChange={(e) => setSelectedPeriodo(e.target.value)}
+                className="bg-transparent text-slate-900 dark:text-slate-100 text-xs font-semibold focus:outline-hidden cursor-pointer"
+              >
+                <optgroup label="Ejercicio 2026" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                  <option value="2026-08">2026 - Agosto</option>
+                  <option value="2026-07">2026 - Julio</option>
+                  <option value="2026-06">2026 - Junio</option>
+                </optgroup>
+                <optgroup label="Ejercicio 2025" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                  <option value="2025-12">2025 - Diciembre</option>
+                  <option value="2025-11">2025 - Noviembre</option>
+                  <option value="2025-10">2025 - Octubre</option>
+                  <option value="2025-09">2025 - Setiembre</option>
+                  <option value="2025-08">2025 - Agosto</option>
+                  <option value="2025-07">2025 - Julio</option>
+                  <option value="2025-06">2025 - Junio</option>
+                  <option value="2025-05">2025 - Mayo</option>
+                  <option value="2025-04">2025 - Abril</option>
+                  <option value="2025-03">2025 - Marzo</option>
+                  <option value="2025-02">2025 - Febrero</option>
+                  <option value="2025-01">2025 - Enero</option>
+                </optgroup>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -450,9 +480,9 @@ export default function ContadorTributacionPage() {
       <div className="flex border-b border-slate-200 dark:border-slate-800 gap-2">
         <button
           onClick={() => setActiveTab("sire")}
-          className={`flex items-center gap-2 px-5 py-3 font-semibold text-sm border-b-2 transition-all ${activeTab === "sire"
-              ? "border-blue-600 text-blue-600 dark:text-blue-400"
-              : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+          className={`flex items-center gap-2 px-5 py-3 font-semibold text-sm border-b-2 transition-all cursor-pointer ${activeTab === "sire"
+            ? "border-blue-600 text-blue-600 dark:text-blue-400"
+            : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
             }`}
         >
           <FileSpreadsheet className="w-4 h-4" />
@@ -461,9 +491,9 @@ export default function ContadorTributacionPage() {
 
         <button
           onClick={() => setActiveTab("liquidacion")}
-          className={`flex items-center gap-2 px-5 py-3 font-semibold text-sm border-b-2 transition-all ${activeTab === "liquidacion"
-              ? "border-blue-600 text-blue-600 dark:text-blue-400"
-              : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+          className={`flex items-center gap-2 px-5 py-3 font-semibold text-sm border-b-2 transition-all cursor-pointer ${activeTab === "liquidacion"
+            ? "border-blue-600 text-blue-600 dark:text-blue-400"
+            : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
             }`}
         >
           <Calculator className="w-4 h-4" />
@@ -472,9 +502,9 @@ export default function ContadorTributacionPage() {
 
         <button
           onClick={() => setActiveTab("plame")}
-          className={`flex items-center gap-2 px-5 py-3 font-semibold text-sm border-b-2 transition-all ${activeTab === "plame"
-              ? "border-blue-600 text-blue-600 dark:text-blue-400"
-              : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+          className={`flex items-center gap-2 px-5 py-3 font-semibold text-sm border-b-2 transition-all cursor-pointer ${activeTab === "plame"
+            ? "border-blue-600 text-blue-600 dark:text-blue-400"
+            : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
             }`}
         >
           <Users className="w-4 h-4" />
@@ -488,14 +518,14 @@ export default function ContadorTributacionPage() {
       {activeTab === "sire" && (
         <div className="space-y-6">
           {/* BARRA DE HERRAMIENTAS SIRE */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 mr-2">Libro:</span>
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 mr-1">Libro:</span>
               <button
                 onClick={() => setSireTipo("RCE")}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${sireTipo === "RCE"
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
                   }`}
               >
                 RCE (Registro de Compras)
@@ -503,23 +533,74 @@ export default function ContadorTributacionPage() {
               <button
                 onClick={() => setSireTipo("RVIE")}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${sireTipo === "RVIE"
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
                   }`}
               >
                 RVIE (Registro de Ventas)
               </button>
 
-              <Badge variant="outline" className="ml-2 font-mono text-xs">
+              <Badge variant="outline" className="ml-1 font-mono text-xs">
                 {sirePropuesta?.estado || "NO_DESCARGADO"}
               </Badge>
+
+              {sirePropuesta?.origen_datos === "API_SUNAT_OFICIAL" ? (
+                <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 gap-1.5 font-medium text-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  API SUNAT Oficial
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="border-amber-300 text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 gap-1.5 font-medium text-xs">
+                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                  Modo Asistido
+                </Badge>
+              )}
+
+              {/* Selector de Ambiente SUNAT */}
+              <div className="flex items-center gap-0.5 border border-slate-200 dark:border-slate-700 rounded-lg p-0.5 bg-slate-50 dark:bg-slate-800/60 text-[11px] ml-1">
+                <button
+                  type="button"
+                  title="Ambiente de Producción SUNAT (api-sire.sunat.gob.pe)"
+                  onClick={() => setSireAmbiente("prod")}
+                  className={`px-2 py-0.5 rounded font-semibold transition-colors ${
+                    sireAmbiente === "prod"
+                      ? "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-xs"
+                      : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                  }`}
+                >
+                  Prod
+                </button>
+                <button
+                  type="button"
+                  title="Ambiente de Pruebas Beta SUNAT (api-sire-beta.sunat.gob.pe)"
+                  onClick={() => setSireAmbiente("beta")}
+                  className={`px-2 py-0.5 rounded font-semibold transition-colors ${
+                    sireAmbiente === "beta"
+                      ? "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-xs"
+                      : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                  }`}
+                >
+                  Beta
+                </button>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleExtraerSire}
+                onClick={handleTestSireApi}
+                disabled={sireTestingApi || !clienteSeleccionado}
+                className="gap-2 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50"
+              >
+                <Globe className={`w-3.5 h-3.5 ${sireTestingApi ? "animate-spin" : ""}`} />
+                Probar Conexión API
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleExtraerSire(false)}
                 disabled={sireActionLoading}
                 className="gap-2 border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50"
               >
@@ -564,6 +645,64 @@ export default function ContadorTributacionPage() {
               )}
             </div>
           </div>
+
+          {/* BANNER DE ORIGEN DE DATOS Y DIAGNÓSTICO SUNAT SIRE */}
+          {sirePropuesta && (
+            <div className={`p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3 ${
+              sirePropuesta.origen_datos === "API_SUNAT_OFICIAL"
+                ? "bg-emerald-50/80 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800/60"
+                : "bg-blue-50/80 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800/60"
+            }`}>
+              <div className="flex items-start gap-3">
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
+                  sirePropuesta.origen_datos === "API_SUNAT_OFICIAL"
+                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300"
+                    : "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
+                }`}>
+                  {sirePropuesta.origen_datos === "API_SUNAT_OFICIAL" ? (
+                    <ShieldCheck className="w-5 h-5" />
+                  ) : (
+                    <Sparkles className="w-5 h-5" />
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                      {sirePropuesta.origen_datos === "API_SUNAT_OFICIAL"
+                        ? "Servicio Web Oficial API SUNAT SIRE (OAuth 2.0)"
+                        : "Modo Asistido (Cruce con Transacciones Registradas)"}
+                    </span>
+                    {sirePropuesta.ticket_sunat && (
+                      <Badge variant="outline" className="font-mono text-[10px] bg-white/70 dark:bg-slate-900/70">
+                        Ticket: {sirePropuesta.ticket_sunat}
+                      </Badge>
+                    )}
+                    <Badge variant="outline" className="text-[10px] uppercase font-mono bg-white/70 dark:bg-slate-900/70">
+                      Ambiente: {sireAmbiente === "beta" ? "BETA (api-sire-beta)" : "PRODUCCIÓN (api-sire)"}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                    {sirePropuesta.api_diagnostico ||
+                      (sirePropuesta.origen_datos === "API_SUNAT_OFICIAL"
+                        ? "Comprobantes sincronizados directamente desde los servidores de SUNAT mediante su API REST oficial."
+                        : "Para conectar en vivo con api-sire.sunat.gob.pe, registre su Client ID y Client Secret en Gestión de Clientes.")}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTestSireApi}
+                  disabled={sireTestingApi}
+                  className="text-xs gap-1.5 h-8 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:bg-slate-50"
+                >
+                  <Globe className={`w-3.5 h-3.5 text-blue-600 ${sireTestingApi ? "animate-spin" : ""}`} />
+                  Diagnosticar Conexión
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* MÉTRICAS DE LA PROPUESTA Y CONCILIACIÓN */}
           {sireMetricas && (
@@ -661,17 +800,24 @@ export default function ContadorTributacionPage() {
                 </div>
 
                 {/* FILTROS POR ESTADO DE CRUCE */}
-                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-                  {["TODOS", "COINCIDE", "SOLO_EN_SUNAT", "EXCLUIDO"].map((st) => (
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg overflow-x-auto max-w-full">
+                  {[
+                    { id: "TODOS", label: "Todos" },
+                    { id: "COINCIDE", label: "Coinciden (100%)" },
+                    { id: "SOLO_EN_SUNAT", label: "Solo en SUNAT" },
+                    { id: "SOLO_EN_SISTEMA", label: "Solo en Sistema" },
+                    { id: "DISCREPANCIA_MONTO", label: "Discrepancia" },
+                    { id: "EXCLUIDO", label: "Excluidos" }
+                  ].map((filtro) => (
                     <button
-                      key={st}
-                      onClick={() => setSireFiltroEstado(st)}
-                      className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${sireFiltroEstado === st
-                          ? "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-sm"
-                          : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+                      key={filtro.id}
+                      onClick={() => setSireFiltroEstado(filtro.id)}
+                      className={`px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${sireFiltroEstado === filtro.id
+                        ? "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-sm"
+                        : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
                         }`}
                     >
-                      {st}
+                      {filtro.label}
                     </button>
                   ))}
                 </div>
@@ -755,6 +901,10 @@ export default function ContadorTributacionPage() {
                               <Badge className="bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border-sky-300 text-[10px]">
                                 Solo en Sistema
                               </Badge>
+                            ) : comp.estado_cruce === "DISCREPANCIA_MONTO" ? (
+                              <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300 border-orange-300 text-[10px]">
+                                Discrepancia Monto
+                              </Badge>
                             ) : comp.estado_cruce === "EXCLUIDO" ? (
                               <Badge className="bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border-rose-300 text-[10px]">
                                 Excluido
@@ -763,6 +913,11 @@ export default function ContadorTributacionPage() {
                               <Badge variant="outline" className="text-[10px]">
                                 {comp.estado_cruce}
                               </Badge>
+                            )}
+                            {comp.motivo_exclusion && comp.estado_cruce !== "EXCLUIDO" && (
+                              <div className="text-[10px] text-slate-500 mt-0.5 max-w-[150px] mx-auto truncate" title={comp.motivo_exclusion}>
+                                {comp.motivo_exclusion}
+                              </div>
                             )}
                           </td>
                           <td className="px-4 py-3 text-center">
@@ -843,8 +998,8 @@ export default function ContadorTributacionPage() {
           {declaracion && (
             <div
               className={`p-4 rounded-xl border flex items-center justify-between ${declaracion.estado_coincidencia === "COINCIDE"
-                  ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300"
-                  : "bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300"
+                ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300"
+                : "bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300"
                 }`}
             >
               <div className="flex items-center gap-3">
@@ -1146,8 +1301,8 @@ export default function ContadorTributacionPage() {
           {plameValidacion && (
             <div
               className={`p-4 rounded-xl border flex items-center justify-between ${plameValidacion.esValido
-                  ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 text-emerald-800 dark:text-emerald-300"
-                  : "bg-rose-50 dark:bg-rose-950/30 border-rose-300 text-rose-800 dark:text-rose-300"
+                ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 text-emerald-800 dark:text-emerald-300"
+                : "bg-rose-50 dark:bg-rose-950/30 border-rose-300 text-rose-800 dark:text-rose-300"
                 }`}
             >
               <div className="flex items-center gap-3">
@@ -1645,6 +1800,148 @@ export default function ContadorTributacionPage() {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: DIAGNÓSTICO Y CONEXIÓN API SUNAT SIRE             */}
+      {/* ========================================================= */}
+      {modalSireApiOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-xl w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 flex items-center justify-center text-blue-600">
+                  <Globe className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
+                  Diagnóstico del Servicio Web API SUNAT SIRE
+                </h3>
+              </div>
+              <button
+                onClick={() => setModalSireApiOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                ✕
+              </button>
+            </div>
+
+            {sireApiTestResult && (
+              <div className="space-y-4 text-xs">
+                {/* Tarjeta de Estado */}
+                <div className={`p-4 rounded-xl border ${
+                  sireApiTestResult.conectado
+                    ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800"
+                    : sireApiTestResult.modo === "SIN_CREDENCIALES_API"
+                      ? "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
+                      : "bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:border-rose-800"
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-sm text-slate-800 dark:text-slate-100">
+                      {sireApiTestResult.conectado
+                        ? "🟢 Conexión Activa y Validada con SUNAT"
+                        : sireApiTestResult.modo === "SIN_CREDENCIALES_API"
+                          ? "🟡 Credenciales Web API No Configuradas"
+                          : "🔴 Falla de Autenticación con SUNAT"}
+                    </span>
+                    <Badge variant="outline" className="font-mono text-[10px]">
+                      {sireApiTestResult.modo}
+                    </Badge>
+                  </div>
+                  <p className="mt-2 text-slate-700 dark:text-slate-300">
+                    {sireApiTestResult.mensaje}
+                  </p>
+                </div>
+
+                {/* Detalles de la Conexión */}
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
+                  <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-700/60">
+                    <span className="text-slate-500 font-medium">Contribuyente:</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono">
+                      {sireApiTestResult.ruc || clienteSeleccionado?.ruc} - {sireApiTestResult.razonSocial || clienteSeleccionado?.razon_social}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-700/60">
+                    <span className="text-slate-500 font-medium">Servidor OAuth 2.0:</span>
+                    <span className="font-mono text-slate-700 dark:text-slate-300">
+                      api-seguridad.sunat.gob.pe
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-700/60">
+                    <span className="text-slate-500 font-medium">Endpoint Oficial SIRE:</span>
+                    <span className="font-mono text-slate-700 dark:text-slate-300">
+                      https://api-sire.sunat.gob.pe/v1/contribuyente/mype
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-700/60">
+                    <span className="text-slate-500 font-medium">Ambiente:</span>
+                    <span className="font-semibold font-mono text-slate-800 dark:text-slate-200">
+                      {sireAmbiente === "beta" ? "BETA (api-sire-beta)" : "PRODUCCIÓN (api-sire)"}
+                    </span>
+                  </div>
+                  {sireApiTestResult.tokenValidoHasta && (
+                    <div className="flex justify-between py-1">
+                      <span className="text-slate-500 font-medium">Token Válido Hasta:</span>
+                      <span className="font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                        {new Date(sireApiTestResult.tokenValidoHasta).toLocaleString("es-PE")}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Instrucciones de Configuración SOL si falta configurar */}
+                {!sireApiTestResult.conectado && (
+                  <div className="p-3.5 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-900/40 space-y-2">
+                    <p className="font-bold text-blue-900 dark:text-blue-300 text-xs flex items-center gap-1.5">
+                      <Info className="w-4 h-4 text-blue-600" />
+                      ¿Cómo obtener el Client ID y Client Secret de SUNAT?
+                    </p>
+                    <ol className="list-decimal pl-4 space-y-1 text-slate-600 dark:text-slate-400 text-[11px]">
+                      <li>Ingrese a <strong>SUNAT Operaciones en Línea (SOL)</strong> con su RUC y Clave SOL.</li>
+                      <li>Diríjase a la sección <strong>Empresas &gt; Credenciales de Servicios Web</strong>.</li>
+                      <li>Haga clic en <strong>"Registrar Aplicación"</strong>, ingrese el nombre <em>ContaTask SIRE</em> y seleccione el scope <strong>SIRE</strong>.</li>
+                      <li>Copie el <strong>Client ID</strong> y <strong>Client Secret</strong> generados y regístrelos en <strong>Gestión de Clientes &gt; Credenciales SOL</strong> en ContaTask.</li>
+                    </ol>
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setModalSireApiOpen(false)}
+                  >
+                    Cerrar
+                  </Button>
+                  {sireApiTestResult.conectado ? (
+                    <Button
+                      size="sm"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
+                      onClick={() => {
+                        setModalSireApiOpen(false);
+                        handleExtraerSire(true);
+                      }}
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      Extraer Propuesta Oficial Ahora
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5"
+                      onClick={() => {
+                        setModalSireApiOpen(false);
+                        window.location.href = "/contador/clientes";
+                      }}
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Ir a Gestión de Clientes
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

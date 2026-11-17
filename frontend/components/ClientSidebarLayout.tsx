@@ -24,7 +24,8 @@ import {
   CheckCircle2,
   Download,
   ShieldAlert,
-  ArrowLeft
+  ArrowLeft,
+  FolderUp
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ import {
 } from "@/components/ui/dialog";
 import { clearSession, api } from "@/lib/api";
 import { useClientePortal } from "@/context/ClientePortalContext";
+import { BulkUploadModal } from "@/components/BulkUploadModal";
 
 interface ClientSidebarLayoutProps {
   children: React.ReactNode;
@@ -71,7 +73,11 @@ export function ClientSidebarLayout({ children }: ClientSidebarLayoutProps) {
     setVisorModalOpen,
     docVisorUrl,
     docVisorNombre,
-    docVisorId
+    docVisorId,
+    bulkUploadModalOpen,
+    setBulkUploadModalOpen,
+    bulkUploadInitialTrxId,
+    abrirModalCargaMasiva
   } = useClientePortal();
 
   const isEmpresaInactiva = !loading && (clienteInactivo || (clienteInfo && (clienteInfo.activo === false || (clienteInfo.activo as any) === 0)));
@@ -146,24 +152,13 @@ export function ClientSidebarLayout({ children }: ClientSidebarLayoutProps) {
           </button>
 
           <Link href={`/portal-cliente${querySuffix}`} className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold shadow-xs">
-              <Building2 className="h-5 w-5" />
-            </div>
             <div className="flex flex-col">
               <span className="font-bold text-base sm:text-lg tracking-tight leading-tight text-white flex items-center gap-1.5">
                 ContaTask
-                {isEmpresaInactiva ? (
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-950/60 text-red-300 border border-red-800">
-                    Inactivo
-                  </span>
-                ) : (
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-800">
-                    Portal del Cliente
-                  </span>
-                )}
+
               </span>
               <span className="text-[11px] text-slate-400 font-medium truncate max-w-[240px]">
-                {clienteInfo?.razon_social || "Autogestión de Comprobantes"}
+                Portal del Cliente
               </span>
             </div>
           </Link>
@@ -193,6 +188,18 @@ export function ClientSidebarLayout({ children }: ClientSidebarLayoutProps) {
               <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
               <span>{pendientesCount} por entregar</span>
             </Link>
+          )}
+
+          {!isEmpresaInactiva && (
+            <Button
+              size="sm"
+              onClick={() => abrirModalCargaMasiva()}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold gap-1.5 h-8 px-2.5 sm:px-3 cursor-pointer shadow-xs"
+              title="Carga Masiva de Documentos"
+            >
+              <FolderUp className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Carga Masiva</span>
+            </Button>
           )}
 
           {/* Si el usuario autenticado es contador, botón para volver */}
@@ -302,7 +309,7 @@ export function ClientSidebarLayout({ children }: ClientSidebarLayoutProps) {
           >
             {sidebarOpen && (
               <div className="flex flex-col min-h-full w-64">
-                {/* Tarjeta de Identificación de la Empresa MYPE */}
+                {/* Tarjeta de Identificación del Cliente */}
                 <div className="p-4 sm:p-5 border-b border-slate-800 bg-slate-900/50 shrink-0">
                   <div className="flex items-center gap-3">
                     <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md ring-4 ring-emerald-500/20 shrink-0">
@@ -310,7 +317,7 @@ export function ClientSidebarLayout({ children }: ClientSidebarLayoutProps) {
                     </div>
                     <div className="min-w-0 flex-1">
                       <h3 className="font-bold text-white text-xs sm:text-sm leading-snug truncate" title={clienteInfo?.razon_social}>
-                        {clienteInfo?.razon_social || "Empresa MYPE"}
+                        {clienteInfo?.razon_social}
                       </h3>
                       <p className="text-[11px] font-mono text-emerald-400 font-semibold mt-0.5">
                         RUC: {clienteInfo?.ruc || "---"}
@@ -519,6 +526,13 @@ export function ClientSidebarLayout({ children }: ClientSidebarLayoutProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Carga Masiva de Documentos */}
+      <BulkUploadModal
+        open={bulkUploadModalOpen}
+        onOpenChange={setBulkUploadModalOpen}
+        initialSelectedTrxId={bulkUploadInitialTrxId}
+      />
     </div>
   );
 }

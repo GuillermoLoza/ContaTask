@@ -5,7 +5,7 @@ export class SireController {
     try {
       const { clienteId } = req.params;
       const { periodo, tipo = 'RCE' } = req.query;
-      const data = await SireService.getPropuesta(clienteId, periodo || '2026-08', tipo);
+      const data = await SireService.getPropuesta(clienteId, periodo, tipo);
       res.json({ success: true, ...data });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
@@ -15,9 +15,26 @@ export class SireController {
   static async extraerPropuesta(req, res) {
     try {
       const { clienteId } = req.params;
-      const { periodo, tipo = 'RCE' } = req.body;
-      const propuesta = await SireService.extraerPropuestaSire(clienteId, periodo || '2026-08', tipo);
-      res.json({ success: true, message: 'Propuesta SIRE extraída de SUNAT con éxito.', propuesta });
+      const { periodo, tipo = 'RCE', ambiente = 'prod', forzarApi = false } = req.body;
+      const propuesta = await SireService.extraerPropuestaSire(clienteId, periodo, tipo, { ambiente, forzarApi });
+      res.json({
+        success: true,
+        message: propuesta.origen_datos === 'API_SUNAT_OFICIAL'
+          ? 'Propuesta SIRE extraída exitosamente desde la API Oficial de SUNAT.'
+          : 'Propuesta SIRE sincronizada en modo asistido (cruce con transacciones internas).',
+        propuesta
+      });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  }
+
+  static async testApiConexion(req, res) {
+    try {
+      const { clienteId } = req.params;
+      const { ambiente = 'prod' } = req.body || {};
+      const resultado = await SireService.testConexionApiSire(clienteId, { ambiente });
+      res.json({ success: true, ...resultado });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }

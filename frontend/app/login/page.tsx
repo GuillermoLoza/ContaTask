@@ -102,7 +102,7 @@ function LoginForm() {
           <div className="flex items-start gap-3 p-3.5 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-900 dark:text-red-200 text-xs animate-fade-in">
             <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold">Ruta protegida</p>
+              <p className="font-semibold">Sesión expirada</p>
               <p className="text-red-700 dark:text-red-300">
                 Debe iniciar sesión para acceder al portal.
               </p>
@@ -168,67 +168,6 @@ function LoginForm() {
             </form>
           </CardContent>
 
-          <CardFooter className="flex flex-col space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800/80">
-            <div className="text-center w-full">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                Usuarios de prueba:
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 w-full">
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-[11px] h-auto py-2 flex flex-col items-start gap-0.5 border-blue-200 dark:border-blue-900 hover:bg-blue-50 dark:hover:bg-blue-950/40"
-                onClick={() => handleQuickLogin("contador@contatask.pe", "password123")}
-                disabled={loading}
-              >
-                <span className="font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                  <UserCheck className="h-3 w-3" /> Contador
-                </span>
-                <span className="text-slate-500 dark:text-slate-400 text-[10px]">CPCC. Pedro Lozano</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-[11px] h-auto py-2 flex flex-col items-start gap-0.5 border-emerald-200 dark:border-emerald-900 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
-                onClick={() => handleQuickLogin("contacto@textileslima.com", "password123")}
-                disabled={loading}
-              >
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                  <Building2 className="h-3 w-3" /> Textiles Lima
-                </span>
-                <span className="text-slate-500 dark:text-slate-400 text-[10px]">RUC 20512345671</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-[11px] h-auto py-2 flex flex-col items-start gap-0.5 border-purple-200 dark:border-purple-900 hover:bg-purple-50 dark:hover:bg-purple-950/40"
-                onClick={() => handleQuickLogin("ventas@ferreteriaelnorte.pe", "password123")}
-                disabled={loading}
-              >
-                <span className="font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-1">
-                  <Building2 className="h-3 w-3" /> Ferretería Norte
-                </span>
-                <span className="text-slate-500 dark:text-slate-400 text-[10px]">RUC 20608765432</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-[11px] h-auto py-2 flex flex-col items-start gap-0.5 border-amber-200 dark:border-amber-900 hover:bg-amber-50 dark:hover:bg-amber-950/40"
-                onClick={() => handleQuickLogin("administracion@colegiomaria.edu.pe", "password123")}
-                disabled={loading}
-              >
-                <span className="font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                  <Building2 className="h-3 w-3" /> Col. María Aux.
-                </span>
-                <span className="text-slate-500 dark:text-slate-400 text-[10px]">RUC 20491238475</span>
-              </Button>
-            </div>
-          </CardFooter>
         </Card>
       </div>
     </div>

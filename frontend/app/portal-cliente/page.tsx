@@ -10,7 +10,8 @@ import {
   ShieldCheck,
   FileText,
   RefreshCw,
-  ArrowRight
+  ArrowRight,
+  FolderUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -34,7 +35,8 @@ export default function ResumenPortalClientePage() {
     loadClienteData,
     abrirModalSubida,
     abrirVisor,
-    renderBadgeEstado
+    renderBadgeEstado,
+    abrirModalCargaMasiva
   } = useClientePortal();
 
   if (loading) {
@@ -64,6 +66,13 @@ export default function ResumenPortalClientePage() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          <Button
+            size="sm"
+            onClick={() => abrirModalCargaMasiva()}
+            className="text-xs font-semibold gap-1.5 h-9 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs cursor-pointer"
+          >
+            <FolderUp className="h-4 w-4" /> Carga Masiva
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -167,13 +176,23 @@ export default function ResumenPortalClientePage() {
             </div>
           </div>
 
-          <Link
-            href={`/portal-cliente/pendientes${querySuffix}`}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-sm shrink-0 cursor-pointer"
-          >
-            <FileUp className="h-4 w-4" />
-            Ver y Subir Documentos
-          </Link>
+          <div className="flex flex-col sm:flex-row items-center gap-2 shrink-0">
+            <Button
+              size="sm"
+              onClick={() => abrirModalCargaMasiva()}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs cursor-pointer"
+            >
+              <FolderUp className="h-4 w-4" />
+              Carga Masiva
+            </Button>
+            <Link
+              href={`/portal-cliente/pendientes${querySuffix}`}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-sm cursor-pointer"
+            >
+              <FileUp className="h-4 w-4" />
+              Ver Pendientes
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="p-5 rounded-2xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-200 flex items-center justify-between gap-4 shadow-xs">

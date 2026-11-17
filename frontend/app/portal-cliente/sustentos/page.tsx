@@ -6,7 +6,9 @@ import {
   Search,
   Eye,
   FileUp,
-  Filter
+  Filter,
+  FolderUp,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -20,7 +22,8 @@ export default function SustentosPage() {
     loading,
     abrirModalSubida,
     abrirVisor,
-    renderBadgeEstado
+    renderBadgeEstado,
+    abrirModalCargaMasiva
   } = useClientePortal();
 
   const [filtroEstado, setFiltroEstado] = useState<string>("TODOS");
@@ -65,10 +68,40 @@ export default function SustentosPage() {
               </CardDescription>
             </div>
 
-            <Badge variant="outline" className="text-xs font-mono">
-              {transaccionesFiltradas.length} operaciones encontradas
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => abrirModalCargaMasiva()}
+                size="sm"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs gap-1.5 h-8 cursor-pointer shadow-xs"
+              >
+                <FolderUp className="h-3.5 w-3.5" />
+                <span>Carga Masiva</span>
+              </Button>
+              <Badge variant="outline" className="text-xs font-mono">
+                {transaccionesFiltradas.length} operaciones
+              </Badge>
+            </div>
           </div>
+
+          {/* Banner sugerencia de carga masiva */}
+          {transacciones.some((t) => t.estado_sustento === "INFORMACION_INCOMPLETA" || t.estado_sustento === "RECHAZADO") && (
+            <div className="mt-3 p-3 rounded-lg bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2 text-emerald-900 dark:text-emerald-200">
+                <Sparkles className="h-4 w-4 text-emerald-600 shrink-0" />
+                <span>
+                  ¿Tiene múltiples comprobantes por enviar? Puede arrastrar todos sus archivos y el sistema los vinculará automáticamente.
+                </span>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => abrirModalCargaMasiva()}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold gap-1.5 h-7 cursor-pointer shrink-0"
+              >
+                <FolderUp className="h-3.5 w-3.5" />
+                Subir Archivos Masivamente
+              </Button>
+            </div>
+          )}
 
           {/* Filtros de búsqueda */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3">
