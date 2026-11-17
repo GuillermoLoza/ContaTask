@@ -51,8 +51,22 @@ export async function initDatabase() {
       table.string('empresa_nombre').nullable();
       table.string('telefono').nullable();
       table.boolean('activo').defaultTo(true);
+      table.boolean('mfa_enabled').defaultTo(false);
+      table.string('mfa_secret').nullable();
+      table.text('mfa_recovery_codes').nullable();
+      table.timestamp('mfa_verified_at').nullable();
       table.timestamp('created_at').defaultTo(db.fn.now());
     });
+  } else {
+    const hasMfa = await db.schema.hasColumn('usuarios', 'mfa_enabled');
+    if (!hasMfa) {
+      await db.schema.table('usuarios', (table) => {
+        table.boolean('mfa_enabled').defaultTo(false);
+        table.string('mfa_secret').nullable();
+        table.text('mfa_recovery_codes').nullable();
+        table.timestamp('mfa_verified_at').nullable();
+      });
+    }
   }
 
   // 2. Tabla: clientes

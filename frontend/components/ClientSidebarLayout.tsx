@@ -40,6 +40,7 @@ import {
 import { clearSession, api } from "@/lib/api";
 import { useClientePortal } from "@/context/ClientePortalContext";
 import { BulkUploadModal } from "@/components/BulkUploadModal";
+import { MfaModal } from "@/components/MfaModal";
 
 interface ClientSidebarLayoutProps {
   children: React.ReactNode;
@@ -51,6 +52,7 @@ export function ClientSidebarLayout({ children }: ClientSidebarLayoutProps) {
   const searchParams = useSearchParams();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [copiedRuc, setCopiedRuc] = useState(false);
+  const [mfaModalOpen, setMfaModalOpen] = useState(false);
 
   const {
     user,
@@ -213,6 +215,15 @@ export function ClientSidebarLayout({ children }: ClientSidebarLayoutProps) {
             </Link>
           )}
 
+          {/* Botón Seguridad / MFA 2FA */}
+          <button
+            onClick={() => setMfaModalOpen(true)}
+            className="p-2 rounded-md hover:bg-slate-800 text-slate-200 hover:text-emerald-400 transition-colors cursor-pointer"
+            title="Seguridad y Autenticación Multifactor (2FA)"
+          >
+            <ShieldCheck className="h-5 w-5 text-emerald-400" />
+          </button>
+
           <button
             onClick={handleLogout}
             className="p-2 rounded-md hover:bg-slate-800 text-slate-200 hover:text-white transition-colors cursor-pointer"
@@ -327,6 +338,18 @@ export function ClientSidebarLayout({ children }: ClientSidebarLayoutProps) {
 
                   <div className="mt-2.5 flex items-center justify-center text-[14px]">
                     {clienteInfo?.contacto_nombre || "Titular"}
+                  </div>
+
+                  {/* Botón Seguridad / MFA 2FA en tarjeta de perfil */}
+                  <div className="mt-2 flex justify-center">
+                    <button
+                      type="button"
+                      onClick={() => setMfaModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors cursor-pointer"
+                    >
+                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                      <span>Seguridad y 2FA</span>
+                    </button>
                   </div>
                 </div>
 
@@ -532,6 +555,13 @@ export function ClientSidebarLayout({ children }: ClientSidebarLayoutProps) {
         open={bulkUploadModalOpen}
         onOpenChange={setBulkUploadModalOpen}
         initialSelectedTrxId={bulkUploadInitialTrxId}
+      />
+
+      {/* Modal de Autenticación Multifactor (2FA / MFA) */}
+      <MfaModal
+        open={mfaModalOpen}
+        onOpenChange={setMfaModalOpen}
+        userEmail={user?.email}
       />
     </div>
   );

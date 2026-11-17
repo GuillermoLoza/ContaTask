@@ -8,6 +8,39 @@ export interface Usuario {
   ruc?: string;
   empresaNombre?: string;
   telefono?: string;
+  mfa_enabled?: boolean;
+}
+
+export interface LoginResponse {
+  success?: boolean;
+  message?: string;
+  token?: string;
+  usuario?: Usuario;
+  mfaRequired?: boolean;
+  mfaToken?: string;
+  email?: string;
+  nombre?: string;
+}
+
+export interface MfaStatusResponse {
+  mfaEnabled: boolean;
+  mfaVerifiedAt: string | null;
+  remainingRecoveryCodes: number;
+}
+
+export interface MfaSetupResponse {
+  secret: string;
+  manualKey: string;
+  otpauthUrl: string;
+  qrCodeDataUrl: string;
+  accountName: string;
+  issuer: string;
+}
+
+export interface MfaVerifyResponse {
+  message: string;
+  mfaEnabled: boolean;
+  recoveryCodes: string[];
 }
 
 export interface Cliente {
@@ -200,7 +233,7 @@ async function request(endpoint: string, options: RequestInit = {}) {
 
 export const api = {
   // Auth
-  login: async (email: string, password: string) => {
+  login: async (email: string, password: string): Promise<LoginResponse> => {
     const data = await request("/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -212,6 +245,47 @@ export const api = {
     }
     return data;
   },
+
+  loginMfa: async (mfaToken: string, code: string): Promise<LoginResponse> => {
+    const data = await request("/auth/login-mfa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mfaToken, code }),
+    });
+    if (data.token && data.usuario) {
+      setToken(data.token);
+      setSavedUser(data.usuario);
+    }
+    return data;
+  },
+
+  getMfaStatus: (): Promise<MfaStatusResponse> => request("/auth/mfa/status"),
+
+  setupMfa: (): Promise<MfaSetupResponse> =>
+    request("/auth/mfa/setup", {
+      method: "POST",
+    }),
+
+  verifyAndEnableMfa: (secret: string, code: string): Promise<MfaVerifyResponse> =>
+    request("/auth/mfa/verify-and-enable", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ secret, code }),
+    }),
+
+  disableMfa: (password: string): Promise<{ message: string; mfaEnabled: boolean }> =>
+    request("/auth/mfa/disable", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    }),
+
+  regenerateRecoveryCodes: (password: string): Promise<{ message: string; recoveryCodes: string[] }> =>
+    request("/auth/mfa/regenerate-recovery-codes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    }),
 
   getCurrentUser: () => request("/auth/me"),
   getDemoUsers: () => request("/auth/demo-users"),

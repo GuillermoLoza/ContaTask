@@ -50,6 +50,7 @@ import {
   DialogDescription,
   DialogFooter
 } from "@/components/ui/dialog";
+import { MfaModal } from "@/components/MfaModal";
 import { clearSession, api } from "@/lib/api";
 import { useContador } from "@/context/ContadorContext";
 
@@ -101,6 +102,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [notifModalOpen, setNotifModalOpen] = useState(false);
+  const [mfaModalOpen, setMfaModalOpen] = useState(false);
 
   const {
     user,
@@ -382,6 +384,15 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
             )}
           </div>
 
+          {/* Botón Seguridad / MFA 2FA */}
+          <button
+            onClick={() => setMfaModalOpen(true)}
+            className="p-2 rounded-md hover:bg-slate-800 text-slate-200 hover:text-emerald-400 transition-colors cursor-pointer"
+            title="Seguridad y Autenticación Multifactor (2FA)"
+          >
+            <ShieldCheck className="h-5 w-5 text-emerald-400" />
+          </button>
+
           {/* Botón Salir / Logout */}
           <button
             onClick={handleLogout}
@@ -420,6 +431,16 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                 <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 truncate max-w-[200px]">
                   {user?.email || "contador@contasync.pe"}
                 </p>
+
+                {/* Botón Seguridad / MFA 2FA en tarjeta de perfil */}
+                <button
+                  type="button"
+                  onClick={() => setMfaModalOpen(true)}
+                  className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors cursor-pointer"
+                >
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                  <span>Seguridad y 2FA</span>
+                </button>
               </div>
 
               {/* Menú de Navegación Lateral con Enlaces Dedicados */}
@@ -1726,6 +1747,13 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* MODAL AUTENTICACIÓN MULTIFACTOR (2FA / MFA) */}
+      <MfaModal
+        open={mfaModalOpen}
+        onOpenChange={setMfaModalOpen}
+        userEmail={user?.email}
+      />
     </div>
   );
 }

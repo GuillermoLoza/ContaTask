@@ -19,9 +19,60 @@ export class Usuario {
    */
   static async findById(id) {
     return db('usuarios')
-      .select('id', 'nombre', 'email', 'rol', 'ruc', 'empresa_nombre', 'telefono', 'activo')
+      .select('id', 'nombre', 'email', 'rol', 'ruc', 'empresa_nombre', 'telefono', 'activo', 'mfa_enabled', 'mfa_verified_at')
       .where({ id: Number(id) })
       .first();
+  }
+
+  /**
+   * Obtener detalles de MFA para validación o configuración
+   */
+  static async getMfaDetails(id) {
+    return db('usuarios')
+      .select('id', 'email', 'password_hash', 'mfa_enabled', 'mfa_secret', 'mfa_recovery_codes', 'mfa_verified_at')
+      .where({ id: Number(id) })
+      .first();
+  }
+
+  /**
+   * Activa la autenticación multifactor y guarda el secreto y códigos de recuperación
+   */
+  static async enableMfa(id, { secret, recoveryCodes }) {
+    await db('usuarios')
+      .where({ id: Number(id) })
+      .update({
+        mfa_enabled: true,
+        mfa_secret: secret,
+        mfa_recovery_codes: JSON.stringify(recoveryCodes),
+        mfa_verified_at: new Date()
+      });
+    return this.findById(id);
+  }
+
+  /**
+   * Desactiva la autenticación multifactor
+   */
+  static async disableMfa(id) {
+    await db('usuarios')
+      .where({ id: Number(id) })
+      .update({
+        mfa_enabled: false,
+        mfa_secret: null,
+        mfa_recovery_codes: null,
+        mfa_verified_at: null
+      });
+    return this.findById(id);
+  }
+
+  /**
+   * Actualiza los códigos de recuperación tras consumir uno o al regenerar
+   */
+  static async updateRecoveryCodes(id, recoveryCodes) {
+    await db('usuarios')
+      .where({ id: Number(id) })
+      .update({
+        mfa_recovery_codes: JSON.stringify(recoveryCodes)
+      });
   }
 
   /**
