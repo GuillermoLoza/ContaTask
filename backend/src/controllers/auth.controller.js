@@ -6,6 +6,7 @@ import { AuthView } from '../views/auth.view.js';
 import { ResponseView } from '../views/response.view.js';
 import { config } from '../config/env.js';
 import { MfaService } from '../services/mfa.service.js';
+import { emailService } from '../services/email.service.js';
 
 function parseRecoveryCodes(raw) {
   if (!raw) return [];
@@ -362,6 +363,103 @@ export async function changePassword(req, res) {
   return ResponseView.success(res, {
     message: 'Contraseña actualizada con éxito'
   });
+}
+
+/**
+ * Solicitar código de recuperación de contraseña
+ */
+export async function forgotPassword(req, res) {
+  const { email } = req.body;
+
+  if (!email || !email.trim()) {
+    return ResponseView.error(res, 'Debe ingresar su correo electrónico.', 400);
+  }
+
+  const cleanEmail = String(email).toLowerCase().trim();
+  const user = await Usuario.findByEmail(cleanEmail);
+
+  if (!user || !user.activo) {
+    // Por seguridad, respuesta neutra para no enumerar cuentas
+    return ResponseView.success(res, {
+      message: 'Si el correo electrónico está registrado, recibirá un código de recuperación en breve.'
+    });
+  }
+
+  // Generar código numérico de 6 dígitos
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+
+  await Usuario.setResetPasswordCode(cleanEmail, code, expiresAt);
+
+  // Enviar correo de recuperación
+  try {
+    await emailService.sendEmail({
+      to: cleanEmail,
+      subject: `ContaTask - Código de recuperación de contraseña: ${code}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 580px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h2 style="color: #1e3a8a; margin: 0;">ContaTask</h2>
+            <p style="color: #64748b; font-size: 13px; margin: 4px 0 0 0;">Gestión Contable y Tributaria para MYPEs</p>
+          </div>
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 20px;">
+            <h3 style="color: #0f172a; margin-top: 0;">Recuperación de Contraseña</h3>
+            <p style="color: #475569; font-size: 14px; line-height: 1.5;">
+              Hola <strong>${user.nombre || 'Usuario'}</strong>, hemos recibido una solicitud para restablecer la contraseña de tu cuenta.
+            </p>
+            <p style="color: #64748b; font-size: 13px;">Usa el siguiente código de seguridad en la pantalla de acceso:</p>
+            <div style="display: inline-block; padding: 12px 28px; background-color: #2563eb; color: #ffffff; font-size: 28px; font-weight: bold; letter-spacing: 6px; border-radius: 8px; margin: 16px 0;">
+              ${code}
+            </div>
+            <p style="color: #94a3b8; font-size: 12px; margin-bottom: 0;">
+              Este código es de un solo uso y expirará en <strong>15 minutos</strong>.
+            </p>
+          </div>
+          <p style="color: #64748b; font-size: 12px; line-height: 1.4;">
+            Si tú no solicitaste este cambio, puedes ignorar este correo de forma segura. Tu contraseña actual no cambiará hasta que ingreses este código.
+          </p>
+          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+          <p style="color: #94a3b8; font-size: 11px; text-align: center; margin: 0;">
+            ContaTask &bull; Estudio Contable Lozano & Asociados
+          </p>
+        </div>
+      `,
+      text: `Tu código de recuperación de contraseña de ContaTask es: ${code}. Válido por 15 minutos.`
+    });
+  } catch (err) {
+    console.warn('No se pudo enviar email de recuperación:', err.message);
+  }
+
+  return ResponseView.success(res, {
+    message: 'Hemos enviado un código de recuperación de 6 dígitos a su correo electrónico.',
+    devCode: config.nodeEnv !== 'production' ? code : undefined
+  });
+}
+
+/**
+ * Validar código y restablecer contraseña
+ */
+export async function resetPassword(req, res) {
+  const { email, code, newPassword } = req.body;
+
+  if (!email || !code || !newPassword) {
+    return ResponseView.error(res, 'Debe proporcionar correo, código de verificación y la nueva contraseña.', 400);
+  }
+
+  if (String(newPassword).length < 6) {
+    return ResponseView.error(res, 'La nueva contraseña debe tener como mínimo 6 caracteres.', 400);
+  }
+
+  try {
+    const newHash = bcrypt.hashSync(newPassword, 10);
+    await Usuario.verifyAndResetPassword(email, code, newHash);
+
+    return ResponseView.success(res, {
+      message: '¡Contraseña restablecida exitosamente! Ya puedes iniciar sesión con tu nueva contraseña.'
+    });
+  } catch (err) {
+    return ResponseView.error(res, err.message, 400);
+  }
 }
 
 export async function getDemoUsers(_req, res) {

@@ -14,7 +14,10 @@ import {
   ArrowRight,
   ArrowLeft,
   KeyRound,
-  Smartphone
+  Smartphone,
+  Eye,
+  EyeOff,
+  RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
@@ -39,6 +42,20 @@ function LoginForm() {
   const [mfaCode, setMfaCode] = useState("");
   const [useRecoveryCode, setUseRecoveryCode] = useState(false);
   const [mfaError, setMfaError] = useState<string | null>(null);
+
+  // Estados para Recuperación de Contraseña
+  const [mode, setMode] = useState<"login" | "forgot_request" | "forgot_verify" | "forgot_success">("login");
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState<string | null>(null);
+  const [forgotDevCode, setForgotDevCode] = useState<string | null>(null);
+
+  const [resetCode, setResetCode] = useState("");
+  const [resetNewPassword, setResetNewPassword] = useState("");
+  const [resetConfirmPassword, setResetConfirmPassword] = useState("");
+  const [resetShowPassword, setResetShowPassword] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
 
   // Detección de mensajes de redirección (Timeout de 45 min o acceso no autorizado)
   const isExpired = searchParams.get("expired") === "true";
@@ -126,6 +143,68 @@ function LoginForm() {
       setUseRecoveryCode(false);
     };
 
+    const handleRequestForgotCode = async (e?: React.FormEvent) => {
+      if (e) e.preventDefault();
+      if (!forgotEmail.trim()) {
+        setForgotError("Por favor ingresa tu correo electrónico.");
+        return;
+      }
+      setForgotLoading(true);
+      setForgotError(null);
+      try {
+        const res = await api.forgotPassword(forgotEmail.trim());
+        if (res.devCode) {
+          setForgotDevCode(res.devCode);
+          setResetCode(res.devCode);
+        }
+        setMode("forgot_verify");
+        setResetError(null);
+      } catch (err: any) {
+        setForgotError(err.message || "Error al solicitar código de recuperación.");
+      } finally {
+        setForgotLoading(false);
+      }
+    };
+
+    const handleResetPassword = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!resetCode.trim()) {
+        setResetError("Por favor ingresa el código de 6 dígitos.");
+        return;
+      }
+      if (resetNewPassword.length < 6) {
+        setResetError("La nueva contraseña debe tener al menos 6 caracteres.");
+        return;
+      }
+      if (resetNewPassword !== resetConfirmPassword) {
+        setResetError("Las contraseñas no coinciden. Verifícalas.");
+        return;
+      }
+
+      setResetLoading(true);
+      setResetError(null);
+      try {
+        await api.resetPassword(forgotEmail.trim(), resetCode.trim(), resetNewPassword);
+        setEmail(forgotEmail.trim());
+        setPassword("");
+        setMode("forgot_success");
+      } catch (err: any) {
+        setResetError(err.message || "Error al restablecer la contraseña. Verifica el código ingresado.");
+      } finally {
+        setResetLoading(false);
+      }
+    };
+
+    const handleBackToLogin = () => {
+      setMode("login");
+      setForgotError(null);
+      setResetError(null);
+      setForgotDevCode(null);
+      setResetCode("");
+      setResetNewPassword("");
+      setResetConfirmPassword("");
+    };
+
     const handleQuickLogin = async (userEmail: string, userPass: string) => {
       setEmail(userEmail);
       setPassword(userPass);
@@ -155,7 +234,7 @@ function LoginForm() {
       return (
         <div className="flex flex-col justify-center items-center min-h-[calc(100vh-8rem)] py-8 px-4">
           <div className="w-full max-w-md space-y-6">
-              { isExpired && !mfaPending && (
+              { isExpired && mode === "login" && !mfaPending && (
                 <div className="flex items-start gap-3 p-3.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs animate-fade-in">
                   <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
                   <div>
@@ -167,7 +246,7 @@ function LoginForm() {
                 </div>
               )}
 
-              { isUnauthorized && !isExpired && !mfaPending && (
+              { isUnauthorized && !isExpired && mode === "login" && !mfaPending && (
                 <div className="flex items-start gap-3 p-3.5 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-900 dark:text-red-200 text-xs animate-fade-in">
                   <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
                   <div>
@@ -280,6 +359,211 @@ function LoginForm() {
                                 </form>
                               </CardContent>
                             </Card>
+                            ) : mode === "forgot_request" ? (
+                            /* MODO 2: SOLICITAR CÓDIGO DE RECUPERACIÓN */
+                            <Card className="shadow-lg border-slate-200 dark:border-slate-800 animate-fade-in">
+                              <CardHeader className="space-y-2 text-center pb-4">
+                                <div className="mx-auto h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-sm">
+                                  <KeyRound className="h-6 w-6" />
+                                </div>
+                                <CardTitle className="text-xl font-bold">Recuperar Contraseña</CardTitle>
+                                <CardDescription className="text-xs text-slate-500 dark:text-slate-400">
+                                  Ingresa tu correo electrónico registrado y te enviaremos un código de seguridad para restablecer tu contraseña.
+                                </CardDescription>
+                              </CardHeader>
+
+                              <CardContent className="space-y-4">
+                                {forgotError && (
+                                  <div className="flex items-center gap-2 p-3 rounded-md bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 text-xs">
+                                    <AlertCircle className="h-4 w-4 shrink-0" />
+                                    <span>{forgotError}</span>
+                                  </div>
+                                )}
+
+                                <form onSubmit={handleRequestForgotCode} className="space-y-4">
+                                  <div className="space-y-1.5">
+                                    <Label htmlFor="forgotEmail" className="text-xs">Correo Electrónico Registrado</Label>
+                                    <div className="relative">
+                                      <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                                      <Input
+                                        id="forgotEmail"
+                                        type="email"
+                                        placeholder="ejemplo@contatask.pe"
+                                        value={forgotEmail}
+                                        onChange={(e) => setForgotEmail(e.target.value)}
+                                        className="pl-9 text-xs"
+                                        required
+                                        autoFocus
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <Button
+                                    type="submit"
+                                    className="w-full text-xs font-semibold h-10 gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                                    disabled={forgotLoading || !forgotEmail.trim()}
+                                  >
+                                    {forgotLoading ? "Enviando código..." : "Enviar Código de Recuperación"}
+                                    <ArrowRight className="h-4 w-4" />
+                                  </Button>
+
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={handleBackToLogin}
+                                    className="w-full text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer"
+                                  >
+                                    <ArrowLeft className="h-3.5 w-3.5 mr-1" />
+                                    Volver al inicio de sesión
+                                  </Button>
+                                </form>
+                              </CardContent>
+                            </Card>
+                            ) : mode === "forgot_verify" ? (
+                            /* MODO 3: VALIDAR CÓDIGO Y ASIGNAR NUEVA CONTRASEÑA */
+                            <Card className="shadow-lg border-slate-200 dark:border-slate-800 animate-fade-in">
+                              <CardHeader className="space-y-2 text-center pb-4">
+                                <div className="mx-auto h-12 w-12 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-sm">
+                                  <KeyRound className="h-6 w-6" />
+                                </div>
+                                <CardTitle className="text-xl font-bold">Restablecer Contraseña</CardTitle>
+                                <CardDescription className="text-xs text-slate-500 dark:text-slate-400">
+                                  Hemos enviado un código de 6 dígitos a <span className="font-semibold text-slate-800 dark:text-slate-200">{forgotEmail}</span>.
+                                </CardDescription>
+                              </CardHeader>
+
+                              <CardContent className="space-y-4">
+                                {forgotDevCode && (
+                                  <div className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/40 text-blue-800 dark:text-blue-300 text-xs flex items-center justify-between">
+                                    <span>Código generado: <strong className="font-mono text-sm tracking-widest">{forgotDevCode}</strong></span>
+                                    <button
+                                      type="button"
+                                      onClick={() => setResetCode(forgotDevCode)}
+                                      className="text-[11px] underline font-semibold hover:text-blue-600 cursor-pointer"
+                                    >
+                                      Autocompletar
+                                    </button>
+                                  </div>
+                                )}
+
+                                {resetError && (
+                                  <div className="flex items-center gap-2 p-3 rounded-md bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 text-xs">
+                                    <AlertCircle className="h-4 w-4 shrink-0" />
+                                    <span>{resetError}</span>
+                                  </div>
+                                )}
+
+                                <form onSubmit={handleResetPassword} className="space-y-3.5">
+                                  <div className="space-y-1.5">
+                                    <Label htmlFor="resetCode" className="text-xs font-semibold">Código de Verificación (6 dígitos)</Label>
+                                    <Input
+                                      id="resetCode"
+                                      type="text"
+                                      maxLength={6}
+                                      placeholder="000000"
+                                      value={resetCode}
+                                      onChange={(e) => setResetCode(e.target.value.replace(/\D/g, ""))}
+                                      className="text-center font-mono text-lg tracking-widest font-bold"
+                                      required
+                                      autoFocus
+                                    />
+                                    <p className="text-[10px] text-slate-400">El código tiene una validez de 15 minutos.</p>
+                                  </div>
+
+                                  <div className="space-y-1.5">
+                                    <Label htmlFor="resetNewPassword" className="text-xs font-semibold">Nueva Contraseña</Label>
+                                    <div className="relative">
+                                      <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                                      <Input
+                                        id="resetNewPassword"
+                                        type={resetShowPassword ? "text" : "password"}
+                                        placeholder="Mínimo 6 caracteres"
+                                        value={resetNewPassword}
+                                        onChange={(e) => setResetNewPassword(e.target.value)}
+                                        className="pl-9 pr-9 text-xs"
+                                        required
+                                        minLength={6}
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => setResetShowPassword(!resetShowPassword)}
+                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                      >
+                                        {resetShowPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-1.5">
+                                    <Label htmlFor="resetConfirmPassword" className="text-xs font-semibold">Confirmar Nueva Contraseña</Label>
+                                    <div className="relative">
+                                      <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                                      <Input
+                                        id="resetConfirmPassword"
+                                        type={resetShowPassword ? "text" : "password"}
+                                        placeholder="Repite tu nueva contraseña"
+                                        value={resetConfirmPassword}
+                                        onChange={(e) => setResetConfirmPassword(e.target.value)}
+                                        className="pl-9 text-xs"
+                                        required
+                                        minLength={6}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <Button
+                                    type="submit"
+                                    className="w-full text-xs font-semibold h-10 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                                    disabled={resetLoading || resetCode.length < 6 || !resetNewPassword || !resetConfirmPassword}
+                                  >
+                                    {resetLoading ? "Actualizando contraseña..." : "Restablecer Contraseña"}
+                                    <ShieldCheck className="h-4 w-4" />
+                                  </Button>
+
+                                  <div className="flex items-center justify-between pt-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRequestForgotCode()}
+                                      disabled={forgotLoading}
+                                      className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <RefreshCw className={`w-3 h-3 ${forgotLoading ? "animate-spin" : ""}`} />
+                                      Reenviar código
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={handleBackToLogin}
+                                      className="text-[11px] text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer"
+                                    >
+                                      Cancelar
+                                    </button>
+                                  </div>
+                                </form>
+                              </CardContent>
+                            </Card>
+                            ) : mode === "forgot_success" ? (
+                            /* MODO 4: CONFIRMACIÓN EXITOSA */
+                            <Card className="shadow-lg border-slate-200 dark:border-slate-800 animate-fade-in text-center">
+                              <CardHeader className="space-y-2 pb-4">
+                                <div className="mx-auto h-12 w-12 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-sm">
+                                  <CheckCircle2 className="h-7 w-7" />
+                                </div>
+                                <CardTitle className="text-xl font-bold">¡Contraseña Restablecida!</CardTitle>
+                                <CardDescription className="text-xs text-slate-500 dark:text-slate-400">
+                                  Tu contraseña ha sido actualizada exitosamente. Ya puedes ingresar al portal con tu nueva clave de acceso.
+                                </CardDescription>
+                              </CardHeader>
+                              <CardContent className="space-y-4">
+                                <Button
+                                  type="button"
+                                  onClick={handleBackToLogin}
+                                  className="w-full text-xs font-semibold h-10 gap-2 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                                >
+                                  Iniciar Sesión Ahora
+                                  <ArrowRight className="h-4 w-4" />
+                                </Button>
+                              </CardContent>
+                            </Card>
                             ) : (
                             /* PASO 1: LOGIN ESTÁNDAR */
                             <Card className="shadow-lg border-slate-200 dark:border-slate-800">
@@ -318,6 +602,17 @@ function LoginForm() {
                             <div className="space-y-1.5">
                               <div className="flex items-center justify-between">
                                 <Label htmlFor="password" className="text-xs">Contraseña</Label>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setForgotEmail(email);
+                                    setMode("forgot_request");
+                                    setForgotError(null);
+                                  }}
+                                  className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                                >
+                                  ¿Olvidaste tu contraseña?
+                                </button>
                               </div>
                               <div className="relative">
                                 <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />

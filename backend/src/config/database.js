@@ -59,6 +59,8 @@ export async function initDatabase() {
       table.string('mfa_secret').nullable();
       table.text('mfa_recovery_codes').nullable();
       table.timestamp('mfa_verified_at').nullable();
+      table.string('reset_password_code').nullable();
+      table.timestamp('reset_password_expires_at').nullable();
       table.timestamp('created_at').defaultTo(db.fn.now());
     });
   } else {
@@ -69,6 +71,14 @@ export async function initDatabase() {
         table.string('mfa_secret').nullable();
         table.text('mfa_recovery_codes').nullable();
         table.timestamp('mfa_verified_at').nullable();
+      });
+    }
+
+    const hasResetCols = await db.schema.hasColumn('usuarios', 'reset_password_code');
+    if (!hasResetCols) {
+      await db.schema.table('usuarios', (table) => {
+        table.string('reset_password_code').nullable();
+        table.timestamp('reset_password_expires_at').nullable();
       });
     }
 

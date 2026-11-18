@@ -10,6 +10,8 @@ import {
   getCurrentUser,
   updateProfile,
   changePassword,
+  forgotPassword,
+  resetPassword,
   getDemoUsers
 } from '../controllers/auth.controller.js';
 import { authenticateToken } from '../middlewares/auth.middleware.js';
@@ -19,6 +21,8 @@ const router = Router();
 // Rutas de autenticación pública
 router.post('/login', login);
 router.post('/login-mfa', loginMfa);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 router.get('/demo-users', getDemoUsers);
 
 // Rutas de perfil autenticado

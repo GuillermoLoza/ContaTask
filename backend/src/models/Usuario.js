@@ -70,6 +70,45 @@ export class Usuario {
   }
 
   /**
+   * Registrar código temporal para recuperación de contraseña
+   */
+  static async setResetPasswordCode(email, code, expiresAt) {
+    const user = await this.findByEmail(email);
+    if (!user) return null;
+    await db('usuarios')
+      .where({ id: user.id })
+      .update({
+        reset_password_code: code,
+        reset_password_expires_at: expiresAt
+      });
+    return user;
+  }
+
+  /**
+   * Validar código de recuperación y actualizar la contraseña
+   */
+  static async verifyAndResetPassword(email, code, newPasswordHash) {
+    const user = await this.findByEmail(email);
+    if (!user) {
+      throw new Error('No existe una cuenta registrada con ese correo electrónico');
+    }
+    if (!user.reset_password_code || String(user.reset_password_code).trim() !== String(code).trim()) {
+      throw new Error('El código de verificación es incorrecto');
+    }
+    if (new Date(user.reset_password_expires_at) < new Date()) {
+      throw new Error('El código de verificación ha expirado. Solicite uno nuevo.');
+    }
+    await db('usuarios')
+      .where({ id: user.id })
+      .update({
+        password_hash: newPasswordHash,
+        reset_password_code: null,
+        reset_password_expires_at: null
+      });
+    return user;
+  }
+
+  /**
    * Obtener detalles de MFA para validación o configuración
    */
   static async getMfaDetails(id) {
