@@ -29,7 +29,13 @@ import {
   Globe,
   ShieldCheck,
   ExternalLink,
-  Lock
+  Lock,
+  Eye,
+  EyeOff,
+  Save,
+  Key,
+  Server,
+  Copy
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,7 +52,7 @@ import {
 } from "@/lib/api";
 
 export default function ContadorSirePage() {
-  const { clientes } = useContador();
+  const { clientes, loadAllData } = useContador();
 
   // Estados de Selección
   const [selectedClienteId, setSelectedClienteId] = useState<number | null>(null);
@@ -65,6 +71,16 @@ export default function ContadorSirePage() {
   const [sireTestingApi, setSireTestingApi] = useState<boolean>(false);
   const [modalSireApiOpen, setModalSireApiOpen] = useState<boolean>(false);
   const [sireApiTestResult, setSireApiTestResult] = useState<any | null>(null);
+
+  // Estados para Modal de Diagnóstico y Edición Rápida de Credenciales
+  const [formClientId, setFormClientId] = useState("");
+  const [formClientSecret, setFormClientSecret] = useState("");
+  const [formUsuarioSol, setFormUsuarioSol] = useState("");
+  const [formClaveSol, setFormClaveSol] = useState("");
+  const [mostrarClave, setMostrarClave] = useState(false);
+  const [guardandoCredenciales, setGuardandoCredenciales] = useState(false);
+  const [activeDiagTab, setActiveDiagTab] = useState<"resumen" | "credenciales" | "guia">("resumen");
+  const [copiadoTipo, setCopiadoTipo] = useState<string | null>(null);
 
   // Modal Exclusión SIRE
   const [modalExcluirOpen, setModalExcluirOpen] = useState(false);
@@ -112,6 +128,23 @@ export default function ContadorSirePage() {
       cargarLiquidacion();
     }
   }, [clienteSeleccionado, selectedPeriodo, sireTipo, activeTab]);
+
+  // Sincronizar credenciales del cliente seleccionado con el formulario del modal
+  useEffect(() => {
+    if (clienteSeleccionado) {
+      setFormClientId(clienteSeleccionado.sunat_client_id || "");
+      setFormClientSecret(clienteSeleccionado.sunat_client_secret || "");
+      setFormUsuarioSol(clienteSeleccionado.usuario_sol || "");
+      setFormClaveSol(clienteSeleccionado.clave_sol || "");
+    }
+  }, [clienteSeleccionado, modalSireApiOpen]);
+
+  const copiarAlPortapapeles = (texto: string, tipo: string) => {
+    if (!navigator.clipboard) return;
+    navigator.clipboard.writeText(texto);
+    setCopiadoTipo(tipo);
+    setTimeout(() => setCopiadoTipo(null), 2500);
+  };
 
   const showNotification = (msg: string, isError = false) => {
     if (isError) {
@@ -168,22 +201,63 @@ export default function ContadorSirePage() {
     }
   };
 
-  const handleTestSireApi = async () => {
-    if (!clienteSeleccionado) return;
+  const handleTestSireApi = async (ambienteTarget?: "prod" | "beta" | React.MouseEvent) => {
+    if (!clienteSeleccionado) {
+      showNotification("Seleccione un cliente MYPE para ejecutar el diagnóstico.", true);
+      return;
+    }
+    const env = (ambienteTarget === "prod" || ambienteTarget === "beta") ? ambienteTarget : sireAmbiente;
+    if (ambienteTarget === "prod" || ambienteTarget === "beta") {
+      setSireAmbiente(ambienteTarget);
+    }
     setSireTestingApi(true);
+    setModalSireApiOpen(true);
     try {
-      const res = await api.testSireApiConexion(clienteSeleccionado.id, sireAmbiente);
+      const res = await api.testSireApiConexion(clienteSeleccionado.id, env);
       setSireApiTestResult(res);
-      setModalSireApiOpen(true);
       if (res.conectado) {
         showNotification("Conexión con el servicio Web API SUNAT SIRE validada exitosamente.");
       } else {
         showNotification(res.mensaje || "Diagnóstico de conexión API SUNAT obtenido.", true);
       }
     } catch (err: any) {
+      setSireApiTestResult({
+        success: false,
+        conectado: false,
+        modo: "ERROR_CONEXION_SUNAT",
+        mensaje: err.message || "Error al conectar con los servidores de SUNAT.",
+        error: err.message,
+        ambiente: env,
+        ruc: clienteSeleccionado?.ruc,
+        razonSocial: clienteSeleccionado?.razon_social
+      });
       showNotification(err.message || "Error al verificar conexión con la API SUNAT", true);
     } finally {
       setSireTestingApi(false);
+    }
+  };
+
+  const handleGuardarCredencialesSire = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!clienteSeleccionado) return;
+    setGuardandoCredenciales(true);
+    try {
+      await api.guardarSunatCredenciales(clienteSeleccionado.id, {
+        usuario_sol: formUsuarioSol.trim().toUpperCase(),
+        clave_sol: formClaveSol.trim(),
+        sunat_client_id: formClientId.trim(),
+        sunat_client_secret: formClientSecret.trim()
+      });
+      if (loadAllData) {
+        await loadAllData();
+      }
+      showNotification("Credenciales API SUNAT guardadas exitosamente.");
+      setActiveDiagTab("resumen");
+      await handleTestSireApi();
+    } catch (err: any) {
+      showNotification(err.message || "Error al guardar credenciales en SUNAT", true);
+    } finally {
+      setGuardandoCredenciales(false);
     }
   };
 
@@ -457,7 +531,7 @@ export default function ContadorSirePage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleTestSireApi}
+                onClick={() => handleTestSireApi()}
                 disabled={sireTestingApi || !clienteSeleccionado}
                 className="gap-2 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50"
               >
@@ -561,7 +635,7 @@ export default function ContadorSirePage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleTestSireApi}
+                  onClick={() => handleTestSireApi()}
                   disabled={sireTestingApi}
                   className="text-xs gap-1.5 h-8 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:bg-slate-50"
                 >
@@ -1265,140 +1339,541 @@ export default function ContadorSirePage() {
       {/* MODAL: DIAGNÓSTICO Y CONEXIÓN API SUNAT SIRE             */}
       {/* ========================================================= */}
       {modalSireApiOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-xl w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 flex items-center justify-center text-blue-600">
-                  <Globe className="w-4 h-4" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full max-h-[92vh] flex flex-col border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-in zoom-in-95">
+            {/* Header Sticky */}
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 shrink-0 bg-slate-50/70 dark:bg-slate-950/40">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/80 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-xs shrink-0">
+                  <Globe className={`w-5 h-5 ${sireTestingApi ? "animate-spin" : ""}`} />
                 </div>
-                <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">
-                  Diagnóstico del Servicio Web API SUNAT SIRE
-                </h3>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    Diagnóstico del Servicio Web API SUNAT SIRE
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {clienteSeleccionado ? `${clienteSeleccionado.ruc} • ${clienteSeleccionado.razon_social}` : "Sin cliente seleccionado"}
+                  </p>
+                </div>
               </div>
               <button
+                type="button"
                 onClick={() => setModalSireApiOpen(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+                title="Cerrar modal"
               >
                 ✕
               </button>
             </div>
 
-            {sireApiTestResult && (
-              <div className="space-y-4 text-xs">
-                {/* Tarjeta de Estado */}
-                <div className={`p-4 rounded-xl border ${
-                  sireApiTestResult.conectado
-                    ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800"
-                    : sireApiTestResult.modo === "SIN_CREDENCIALES_API"
-                      ? "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
-                      : "bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:border-rose-800"
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-sm text-slate-800 dark:text-slate-100">
-                      {sireApiTestResult.conectado
-                        ? "🟢 Conexión Activa y Validada con SUNAT"
-                        : sireApiTestResult.modo === "SIN_CREDENCIALES_API"
-                          ? "🟡 Credenciales Web API No Configuradas"
-                          : "🔴 Falla de Autenticación con SUNAT"}
-                    </span>
-                    <Badge variant="outline" className="font-mono text-[10px]">
-                      {sireApiTestResult.modo}
-                    </Badge>
-                  </div>
-                  <p className="mt-2 text-slate-700 dark:text-slate-300">
-                    {sireApiTestResult.mensaje}
-                  </p>
-                </div>
+            {/* Sub-nav / Selector de Pestañas y Ambiente */}
+            <div className="flex flex-wrap items-center justify-between px-4 sm:px-5 pt-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveDiagTab("resumen")}
+                  className={`pb-2.5 px-2 text-xs font-semibold border-b-2 transition-colors ${
+                    activeDiagTab === "resumen"
+                      ? "border-blue-600 text-blue-600 dark:text-blue-400"
+                      : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                  }`}
+                >
+                  Diagnóstico y Estado
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveDiagTab("credenciales")}
+                  className={`pb-2.5 px-2 text-xs font-semibold border-b-2 flex items-center gap-1.5 transition-colors ${
+                    activeDiagTab === "credenciales"
+                      ? "border-blue-600 text-blue-600 dark:text-blue-400"
+                      : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                  }`}
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  Configurar Credenciales
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveDiagTab("guia")}
+                  className={`pb-2.5 px-2 text-xs font-semibold border-b-2 flex items-center gap-1.5 transition-colors ${
+                    activeDiagTab === "guia"
+                      ? "border-blue-600 text-blue-600 dark:text-blue-400"
+                      : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                  }`}
+                >
+                  <Info className="w-3.5 h-3.5" />
+                  Manual SUNAT
+                </button>
+              </div>
 
-                {/* Detalles de la Conexión */}
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
-                  <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-700/60">
-                    <span className="text-slate-500 font-medium">Contribuyente:</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono">
-                      {sireApiTestResult.ruc || clienteSeleccionado?.ruc} - {sireApiTestResult.razonSocial || clienteSeleccionado?.razon_social}
-                    </span>
+              {/* Selector de Ambiente */}
+              <div className="flex items-center gap-1.5 pb-2.5">
+                <span className="text-[11px] text-slate-400 font-medium">Ambiente:</span>
+                <div className="inline-flex rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5 border border-slate-200/60 dark:border-slate-700/60">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSireAmbiente("prod");
+                      handleTestSireApi("prod");
+                    }}
+                    className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                      sireAmbiente === "prod"
+                        ? "bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-xs"
+                        : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+                    }`}
+                  >
+                    Producción
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSireAmbiente("beta");
+                      handleTestSireApi("beta");
+                    }}
+                    className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                      sireAmbiente === "beta"
+                        ? "bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-400 shadow-xs"
+                        : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
+                    }`}
+                  >
+                    Beta Sandbox
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Contenido con Scroll */}
+            <div className="p-5 overflow-y-auto space-y-4 flex-1 text-xs">
+              {/* ESTADO: EN PROCESO DE PRUEBA */}
+              {sireTestingApi && (
+                <div className="p-6 rounded-2xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 text-center space-y-4 animate-in fade-in">
+                  <div className="w-12 h-12 mx-auto rounded-2xl bg-blue-600/10 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <RefreshCw className="w-6 h-6 animate-spin" />
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-700/60">
-                    <span className="text-slate-500 font-medium">Servidor OAuth 2.0:</span>
-                    <span className="font-mono text-slate-700 dark:text-slate-300">
-                      api-seguridad.sunat.gob.pe
-                    </span>
+                  <div>
+                    <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200">
+                      Ejecutando Diagnóstico de Conectividad Oficial
+                    </h4>
+                    <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">
+                      Conectando con servidores de SUNAT en ambiente {sireAmbiente === "beta" ? "BETA Sandbox" : "PRODUCCIÓN"}...
+                    </p>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-700/60">
-                    <span className="text-slate-500 font-medium">Endpoint Oficial SIRE:</span>
-                    <span className="font-mono text-slate-700 dark:text-slate-300">
-                      https://api-sire.sunat.gob.pe/v1/contribuyente/mype
-                    </span>
+                  <div className="max-w-md mx-auto space-y-2.5 text-left pt-2 text-xs">
+                    <div className="flex items-center gap-2.5 text-slate-700 dark:text-slate-300">
+                      <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-ping" />
+                      <span>1. Validando Client ID y Client Secret registrados</span>
+                    </div>
+                    <div className="flex items-center gap-2.5 text-slate-600 dark:text-slate-400">
+                      <span className="w-2.5 h-2.5 rounded-full bg-blue-400" />
+                      <span>2. Autenticando con servidor OAuth 2.0 (api-seguridad.sunat.gob.pe)</span>
+                    </div>
+                    <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-500">
+                      <span className="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700" />
+                      <span>3. Verificando alcance SIRE y disponibilidad de propuesta</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-200/60 dark:border-slate-700/60">
-                    <span className="text-slate-500 font-medium">Ambiente:</span>
-                    <span className="font-semibold font-mono text-slate-800 dark:text-slate-200">
-                      {sireAmbiente === "beta" ? "BETA (api-sire-beta)" : "PRODUCCIÓN (api-sire)"}
-                    </span>
+                </div>
+              )}
+
+              {/* PESTAÑA 1: DIAGNÓSTICO Y ESTADO */}
+              {!sireTestingApi && activeDiagTab === "resumen" && (
+                <div className="space-y-4">
+                  {/* Tarjeta de Estado Principal */}
+                  {sireApiTestResult ? (
+                    <div
+                      className={`p-4 rounded-xl border ${
+                        sireApiTestResult.conectado
+                          ? "bg-emerald-50/80 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800"
+                          : sireApiTestResult.modo === "SIN_CREDENCIALES_API" || sireApiTestResult.modo === "SIN_CREDENCIALES_SOL"
+                          ? "bg-amber-50/80 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
+                          : "bg-rose-50/80 border-rose-200 dark:bg-rose-950/30 dark:border-rose-800"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2.5">
+                          {sireApiTestResult.conectado ? (
+                            <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
+                          ) : (
+                            <AlertTriangle
+                              className={`w-5 h-5 mt-0.5 shrink-0 ${
+                                sireApiTestResult.modo?.includes("SIN_CREDENCIALES")
+                                  ? "text-amber-600 dark:text-amber-400"
+                                  : "text-rose-600 dark:text-rose-400"
+                              }`}
+                            />
+                          )}
+                          <div>
+                            <span className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                              {sireApiTestResult.conectado
+                                ? "Conexión Activa y Validada con SUNAT"
+                                : sireApiTestResult.modo === "SIN_CREDENCIALES_API"
+                                ? "Credenciales Web API No Configuradas"
+                                : sireApiTestResult.modo === "SIN_CREDENCIALES_SOL"
+                                ? "Credenciales Clave SOL Incompletas"
+                                : "Falla de Autenticación con SUNAT"}
+                            </span>
+                            <p className="mt-1 text-slate-700 dark:text-slate-300 leading-relaxed text-xs">
+                              {sireApiTestResult.mensaje}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="font-mono text-[10px] shrink-0">
+                          {sireApiTestResult.modo || (sireApiTestResult.conectado ? "ONLINE" : "ERROR")}
+                        </Badge>
+                      </div>
+
+                      {/* Interpretación Técnica y Consejos en caso de error */}
+                      {!sireApiTestResult.conectado && (
+                        <div className="mt-3 pt-3 border-t border-slate-200/60 dark:border-slate-700/60 text-[11px] space-y-1.5">
+                          <span className="font-semibold text-slate-800 dark:text-slate-200">
+                            Diagnóstico y Recomendación:
+                          </span>
+                          {sireApiTestResult.error?.includes("invalid_grant") || sireApiTestResult.mensaje?.includes("invalid_grant") ? (
+                            <p className="text-slate-600 dark:text-slate-400">
+                              SUNAT reportó <strong>invalid_grant</strong>. Esto significa que el Usuario SOL o la Clave SOL son incorrectos, o que el usuario secundario no cuenta con permisos para el sistema SIRE en SOL.
+                            </p>
+                          ) : sireApiTestResult.error?.includes("invalid_client") || sireApiTestResult.mensaje?.includes("invalid_client") ? (
+                            <p className="text-slate-600 dark:text-slate-400">
+                              SUNAT reportó <strong>invalid_client</strong>. El Client ID o Client Secret no coinciden con la aplicación registrada en el portal SOL para este RUC.
+                            </p>
+                          ) : sireApiTestResult.error?.includes("timeout") || sireApiTestResult.mensaje?.includes("espera agotado") ? (
+                            <p className="text-slate-600 dark:text-slate-400">
+                              Los servidores de SUNAT no respondieron dentro del tiempo de espera de 8 segundos. Suele ocurrir en fechas de vencimiento tributario. Puedes reintentar o usar el ambiente Beta.
+                            </p>
+                          ) : sireApiTestResult.modo?.includes("SIN_CREDENCIALES") ? (
+                            <p className="text-slate-600 dark:text-slate-400">
+                              Puedes ingresar y guardar el Client ID y Client Secret directamente en la pestaña <strong>Configurar Credenciales</strong> arriba.
+                            </p>
+                          ) : (
+                            <p className="text-slate-600 dark:text-slate-400">
+                              Detalle técnico: {sireApiTestResult.error || sireApiTestResult.mensaje}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 text-center space-y-2">
+                      <p className="text-slate-600 dark:text-slate-300">
+                        Presione <strong>Reintentar Diagnóstico</strong> para consultar el estado en vivo de la API SUNAT.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Ficha Técnica de la Conexión */}
+                  <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2.5">
+                    <h4 className="font-bold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1.5">
+                      <Server className="w-3.5 h-3.5 text-blue-600" />
+                      Ficha Técnica de Conexión
+                    </h4>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-xs">
+                      <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-700/70">
+                        <span className="text-[10px] text-slate-400 font-medium block">Contribuyente</span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono truncate block">
+                          {clienteSeleccionado?.ruc} - {clienteSeleccionado?.razon_social}
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-700/70">
+                        <span className="text-[10px] text-slate-400 font-medium block">Servidor OAuth 2.0</span>
+                        <span className="font-mono text-slate-700 dark:text-slate-300 truncate block">
+                          api-seguridad.sunat.gob.pe
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-700/70">
+                        <span className="text-[10px] text-slate-400 font-medium block">Endpoint SIRE</span>
+                        <span className="font-mono text-slate-700 dark:text-slate-300 truncate block">
+                          {sireAmbiente === "beta" ? "api-sire-beta.sunat.gob.pe" : "api-sire.sunat.gob.pe"}
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-700/70">
+                        <span className="text-[10px] text-slate-400 font-medium block">Estado de Credenciales</span>
+                        <span className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                          {clienteSeleccionado?.sunat_client_id ? (
+                            <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                              ✓ Client ID Registrado
+                            </span>
+                          ) : (
+                            <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                              ⚠ Client ID Pendiente
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+
+                    {sireApiTestResult?.tokenValidoHasta && (
+                      <div className="flex items-center justify-between p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/70 dark:border-emerald-800/60">
+                        <span className="text-slate-600 dark:text-slate-300 font-medium">Token Bearer Vigente Hasta:</span>
+                        <span className="font-mono text-emerald-700 dark:text-emerald-400 font-semibold">
+                          {new Date(sireApiTestResult.tokenValidoHasta).toLocaleString("es-PE")}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  {sireApiTestResult.tokenValidoHasta && (
-                    <div className="flex justify-between py-1">
-                      <span className="text-slate-500 font-medium">Token Válido Hasta:</span>
-                      <span className="font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
-                        {new Date(sireApiTestResult.tokenValidoHasta).toLocaleString("es-PE")}
-                      </span>
+
+                  {/* Acceso rápido a credenciales si faltan */}
+                  {(!clienteSeleccionado?.sunat_client_id || !clienteSeleccionado?.usuario_sol) && (
+                    <div className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 flex items-center justify-between gap-3">
+                      <div className="space-y-0.5">
+                        <p className="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                          ¿Faltan configurar credenciales de la API SUNAT?
+                        </p>
+                        <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                          Puede ingresar el Client ID, Client Secret y Clave SOL directamente aquí.
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setActiveDiagTab("credenciales")}
+                        className="text-xs shrink-0 bg-white dark:bg-slate-900"
+                      >
+                        <Lock className="w-3.5 h-3.5 mr-1 text-blue-600" />
+                        Configurar Ahora
+                      </Button>
                     </div>
                   )}
                 </div>
+              )}
 
-                {/* Instrucciones de Configuración SOL si falta configurar */}
-                {!sireApiTestResult.conectado && (
-                  <div className="p-3.5 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-900/40 space-y-2">
-                    <p className="font-bold text-blue-900 dark:text-blue-300 text-xs flex items-center gap-1.5">
-                      <Info className="w-4 h-4 text-blue-600" />
-                      ¿Cómo obtener el Client ID y Client Secret de SUNAT?
+              {/* PESTAÑA 2: CONFIGURAR CREDENCIALES SOL Y API (Inline Editor) */}
+              {!sireTestingApi && activeDiagTab === "credenciales" && (
+                <form onSubmit={handleGuardarCredencialesSire} className="space-y-4">
+                  <div className="p-3.5 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/70 dark:border-blue-900/40 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    <p className="font-semibold text-slate-900 dark:text-slate-100 mb-1 flex items-center gap-1.5">
+                      <Key className="w-3.5 h-3.5 text-blue-600" />
+                      Credenciales de Integración Directa con SUNAT
                     </p>
-                    <ol className="list-decimal pl-4 space-y-1 text-slate-600 dark:text-slate-400 text-[11px]">
-                      <li>Ingrese a <strong>SUNAT Operaciones en Línea (SOL)</strong> con su RUC y Clave SOL.</li>
-                      <li>Diríjase a la sección <strong>Empresas &gt; Credenciales de Servicios Web</strong>.</li>
-                      <li>Haga clic en <strong>"Registrar Aplicación"</strong>, ingrese el nombre <em>ContaTask SIRE</em> y seleccione el scope <strong>SIRE</strong>.</li>
-                      <li>Copie el <strong>Client ID</strong> y <strong>Client Secret</strong> generados y regístrelos en <strong>Gestión de Clientes &gt; Credenciales SOL</strong> en ContaTask.</li>
-                    </ol>
+                    Estas credenciales permiten a ContaTask comunicarse de forma segura con la API REST oficial de SUNAT para consultar compras y ventas en vivo.
                   </div>
-                )}
 
-                <div className="flex justify-end gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setModalSireApiOpen(false)}
-                  >
-                    Cerrar
-                  </Button>
-                  {sireApiTestResult.conectado ? (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium">RUC del Contribuyente</Label>
+                        <Input
+                          type="text"
+                          value={clienteSeleccionado?.ruc || ""}
+                          disabled
+                          className="bg-slate-100 dark:bg-slate-800/80 font-mono text-xs cursor-not-allowed"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium">Razón Social</Label>
+                        <Input
+                          type="text"
+                          value={clienteSeleccionado?.razon_social || ""}
+                          disabled
+                          className="bg-slate-100 dark:bg-slate-800/80 text-xs truncate cursor-not-allowed"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium">Usuario SOL (Secundario o Principal) *</Label>
+                        <Input
+                          type="text"
+                          placeholder="Ej. MODDATOS"
+                          value={formUsuarioSol}
+                          onChange={(e) => setFormUsuarioSol(e.target.value.toUpperCase())}
+                          required
+                          className="font-mono text-xs uppercase"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium">Clave SOL *</Label>
+                        <div className="relative">
+                          <Input
+                            type={mostrarClave ? "text" : "password"}
+                            placeholder="••••••••"
+                            value={formClaveSol}
+                            onChange={(e) => setFormClaveSol(e.target.value)}
+                            required
+                            className="font-mono text-xs pr-9"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setMostrarClave(!mostrarClave)}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                          >
+                            {mostrarClave ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-medium">SUNAT Client ID (Servicios Web)</Label>
+                        <span className="text-[10px] text-slate-400">Generado en SOL</span>
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder="Ej. 7c4e9f1a-b32d-4f8a-912c-0e5a6f7b8c9d"
+                        value={formClientId}
+                        onChange={(e) => setFormClientId(e.target.value)}
+                        className="font-mono text-xs"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-medium">SUNAT Client Secret (Servicios Web)</Label>
+                        <span className="text-[10px] text-slate-400">Generado en SOL</span>
+                      </div>
+                      <Input
+                        type="password"
+                        placeholder="••••••••••••••••••••••••••••••••"
+                        value={formClientSecret}
+                        onChange={(e) => setFormClientSecret(e.target.value)}
+                        className="font-mono text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex justify-end gap-2">
                     <Button
+                      type="button"
+                      variant="outline"
                       size="sm"
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
-                      onClick={() => {
-                        setModalSireApiOpen(false);
-                        handleExtraerSire(true);
-                      }}
+                      onClick={() => setActiveDiagTab("resumen")}
                     >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      Extraer Propuesta Oficial Ahora
+                      Cancelar
                     </Button>
-                  ) : (
                     <Button
+                      type="submit"
                       size="sm"
+                      disabled={guardandoCredenciales}
                       className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5"
-                      onClick={() => {
-                        setModalSireApiOpen(false);
-                        window.location.href = "/contador/clientes";
-                      }}
                     >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                      Ir a Gestión de Clientes
+                      <Save className="w-3.5 h-3.5" />
+                      {guardandoCredenciales ? "Guardando y Probando..." : "Guardar y Probar Conexión"}
                     </Button>
-                  )}
+                  </div>
+                </form>
+              )}
+
+              {/* PESTAÑA 3: GUÍA PASO A PASO SUNAT SOL */}
+              {!sireTestingApi && activeDiagTab === "guia" && (
+                <div className="space-y-3.5">
+                  <div className="p-3.5 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 space-y-1">
+                    <h4 className="font-bold text-slate-900 dark:text-slate-100 text-xs flex items-center gap-1.5">
+                      <Info className="w-4 h-4 text-blue-600" />
+                      ¿Cómo obtener el Client ID y Client Secret en el portal SOL?
+                    </h4>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                      SUNAT exige que cada contribuyente registre una aplicación autorizada para consumir los servicios web de SIRE mediante OAuth 2.0.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-blue-600 text-white font-bold text-[11px] flex items-center justify-center shrink-0">1</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">Acceder a SUNAT Operaciones en Línea</span>
+                      </div>
+                      <p className="text-slate-600 dark:text-slate-400 text-[11px] pl-7">
+                        Ingrese a <a href="https://www.sunat.gob.pe" target="_blank" rel="noreferrer" className="text-blue-600 underline font-semibold">sunat.gob.pe</a> &gt; <strong>Mis Trámites y Consultas</strong> con su RUC, Usuario y Clave SOL.
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-blue-600 text-white font-bold text-[11px] flex items-center justify-center shrink-0">2</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">Ir a Credenciales de Servicios Web</span>
+                      </div>
+                      <p className="text-slate-600 dark:text-slate-400 text-[11px] pl-7">
+                        En el menú lateral, diríjase a: <strong>Empresas &gt; Credenciales de Servicios Web &gt; Registro de Aplicaciones</strong>.
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-blue-600 text-white font-bold text-[11px] flex items-center justify-center shrink-0">3</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">Registrar la Aplicación ContaTask</span>
+                      </div>
+                      <p className="text-slate-600 dark:text-slate-400 text-[11px] pl-7">
+                        Haga clic en <strong>"Registrar Aplicación"</strong>. Escriba <em>ContaTask SIRE</em> en el nombre, ingrese una URL de retorno y en la lista de alcances (scopes), marque la casilla <strong>"SIRE"</strong> (Sistema Integrado de Registros Electrónicos).
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-blue-600 text-white font-bold text-[11px] flex items-center justify-center shrink-0">4</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">Copiar Client ID y Client Secret</span>
+                      </div>
+                      <p className="text-slate-600 dark:text-slate-400 text-[11px] pl-7">
+                        Copie ambos valores generados y péguelos en la pestaña <strong>Configurar Credenciales</strong> de este modal o en Gestión de Clientes.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex justify-end">
+                    <Button
+                      size="sm"
+                      onClick={() => setActiveDiagTab("credenciales")}
+                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs gap-1.5"
+                    >
+                      <Lock className="w-3.5 h-3.5" />
+                      Ir al Formulario de Credenciales
+                    </Button>
+                  </div>
                 </div>
+              )}
+            </div>
+
+            {/* Footer Sticky */}
+            <div className="p-4 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-200 dark:border-slate-800 shrink-0 flex items-center justify-between gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleTestSireApi()}
+                disabled={sireTestingApi || !clienteSeleccionado}
+                className="text-xs gap-1.5 bg-white dark:bg-slate-900"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${sireTestingApi ? "animate-spin" : ""}`} />
+                Reintentar Diagnóstico
+              </Button>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setModalSireApiOpen(false)}
+                  className="text-xs"
+                >
+                  Cerrar
+                </Button>
+
+                {sireApiTestResult?.conectado ? (
+                  <Button
+                    size="sm"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 text-xs font-semibold shadow-xs"
+                    onClick={() => {
+                      setModalSireApiOpen(false);
+                      handleExtraerSire(true);
+                    }}
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Extraer Propuesta Oficial Ahora
+                  </Button>
+                ) : activeDiagTab !== "credenciales" ? (
+                  <Button
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5 text-xs font-semibold shadow-xs"
+                    onClick={() => setActiveDiagTab("credenciales")}
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                    Configurar Credenciales
+                  </Button>
+                ) : null}
               </div>
-            )}
+            </div>
           </div>
         </div>
       )}
