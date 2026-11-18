@@ -294,6 +294,76 @@ export function getCurrentUser(req, res) {
   return AuthView.renderProfile(res, req.user);
 }
 
+/**
+ * Actualizar datos de perfil del usuario autenticado (Contador o Cliente)
+ */
+export async function updateProfile(req, res) {
+  const {
+    nombre,
+    email,
+    telefono,
+    ruc,
+    empresaNombre,
+    colegiatura,
+    cargoTitulo,
+    direccionEstudio,
+    pieFirma
+  } = req.body;
+
+  if (email && email.trim()) {
+    const existing = await Usuario.findByEmail(email);
+    if (existing && Number(existing.id) !== Number(req.user.id)) {
+      return ResponseView.error(res, 'El correo electrónico ya se encuentra registrado por otro usuario.', 400);
+    }
+  }
+
+  const updatedUser = await Usuario.updateProfile(req.user.id, {
+    nombre,
+    email,
+    telefono,
+    ruc,
+    empresaNombre,
+    colegiatura,
+    cargoTitulo,
+    direccionEstudio,
+    pieFirma
+  });
+
+  return AuthView.renderProfile(res, updatedUser);
+}
+
+/**
+ * Modificar contraseña de la cuenta del usuario autenticado
+ */
+export async function changePassword(req, res) {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return ResponseView.error(res, 'Debe ingresar la contraseña actual y la nueva contraseña.', 400);
+  }
+
+  if (String(newPassword).length < 6) {
+    return ResponseView.error(res, 'La nueva contraseña debe tener como mínimo 6 caracteres.', 400);
+  }
+
+  const userMfa = await Usuario.getMfaDetails(req.user.id);
+  if (!userMfa) {
+    return ResponseView.error(res, 'Usuario no encontrado', 404);
+  }
+
+  const passwordValid = bcrypt.compareSync(currentPassword, userMfa.password_hash);
+  if (!passwordValid) {
+    return ResponseView.error(res, 'La contraseña actual ingresada es incorrecta.', 400);
+  }
+
+  const newHash = bcrypt.hashSync(newPassword, 10);
+  await Usuario.updatePassword(req.user.id, newHash);
+
+  return ResponseView.success(res, {
+    message: 'Contraseña actualizada con éxito'
+  });
+}
+
 export async function getDemoUsers(_req, res) {
   const users = await Usuario.findActiveDemoUsers();
   return AuthView.renderDemoUsers(res, users);

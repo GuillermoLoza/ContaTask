@@ -33,7 +33,8 @@ import {
   Inbox,
   AlertTriangle,
   FileText,
-  Calculator
+  Calculator,
+  UserCog
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
@@ -333,6 +334,13 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
         href: "/contador/tributacion",
         active: pathname.startsWith("/contador/tributacion"),
       },
+      {
+        id: "perfil",
+        label: "Mi Perfil",
+        icon: UserCog,
+        href: "/contador/perfil",
+        active: pathname.startsWith("/contador/perfil"),
+      },
     ];
 
   return (
@@ -384,6 +392,19 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
             )}
           </div>
 
+          {/* Botón Mi Perfil */}
+          <Link
+            href="/contador/perfil"
+            className={`p-2 rounded-md hover:bg-slate-800 transition-colors ${
+              pathname.startsWith("/contador/perfil")
+                ? "bg-slate-800 text-blue-400"
+                : "text-slate-200 hover:text-blue-400"
+            }`}
+            title="Configurar Perfil del Contador"
+          >
+            <UserCog className="h-5 w-5" />
+          </Link>
+
           {/* Botón Seguridad / MFA 2FA */}
           <button
             onClick={() => setMfaModalOpen(true)}
@@ -422,25 +443,42 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
             <div className="flex flex-col min-h-full w-64">
               {/* Perfil del Contador con escala vertical responsiva */}
               <div className="p-4 sm:p-5 flex flex-col items-center text-center shrink-0 border-b border-slate-800 bg-slate-900/50">
-                <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-md mb-2 sm:mb-3 ring-4 ring-blue-500/20 shrink-0">
-                  <User className="h-6 w-6 sm:h-8 sm:w-8" />
-                </div>
-                <h3 className="font-bold text-white text-xs sm:text-sm leading-snug">
-                  {user?.nombre || "Lic. Guillermo Lozano"}
-                </h3>
-                <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 truncate max-w-[200px]">
-                  {user?.email || "contador@contasync.pe"}
-                </p>
-
-                {/* Botón Seguridad / MFA 2FA en tarjeta de perfil */}
-                <button
-                  type="button"
-                  onClick={() => setMfaModalOpen(true)}
-                  className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors cursor-pointer"
+                <Link
+                  href="/contador/perfil"
+                  className="group flex flex-col items-center"
+                  title="Configurar Perfil del Contador"
                 >
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-                  <span>Seguridad y 2FA</span>
-                </button>
+                  <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-blue-600 group-hover:bg-blue-500 flex items-center justify-center text-white shadow-md mb-2 sm:mb-3 ring-4 ring-blue-500/20 group-hover:ring-blue-400/40 transition-all shrink-0">
+                    <User className="h-6 w-6 sm:h-8 sm:w-8" />
+                  </div>
+                  <h3 className="font-bold text-white group-hover:text-blue-400 text-xs sm:text-sm leading-snug transition-colors">
+                    {user?.nombre || "Lic. Guillermo Lozano"}
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 truncate max-w-[200px]">
+                    {user?.colegiatura ? `${user.colegiatura} • ` : ""}{user?.email || "contador@contasync.pe"}
+                  </p>
+                </Link>
+
+                {/* Botones de Perfil y MFA 2FA en tarjeta */}
+                <div className="mt-3 flex items-center gap-1.5 flex-wrap justify-center">
+                  <Link
+                    href="/contador/perfil"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 transition-colors"
+                  >
+                    <UserCog className="h-3 w-3" />
+                    <span>Mi Perfil</span>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => setMfaModalOpen(true)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors cursor-pointer"
+                    title="Autenticación en Dos Pasos (2FA)"
+                  >
+                    <ShieldCheck className="h-3 w-3 text-emerald-400" />
+                    <span>2FA</span>
+                  </button>
+                </div>
               </div>
 
               {/* Menú de Navegación Lateral con Enlaces Dedicados */}

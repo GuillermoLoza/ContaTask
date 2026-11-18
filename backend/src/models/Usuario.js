@@ -19,9 +19,54 @@ export class Usuario {
    */
   static async findById(id) {
     return db('usuarios')
-      .select('id', 'nombre', 'email', 'rol', 'ruc', 'empresa_nombre', 'telefono', 'activo', 'mfa_enabled', 'mfa_verified_at')
+      .select(
+        'id',
+        'nombre',
+        'email',
+        'rol',
+        'ruc',
+        'empresa_nombre',
+        'telefono',
+        'colegiatura',
+        'cargo_titulo',
+        'direccion_estudio',
+        'pie_firma',
+        'activo',
+        'mfa_enabled',
+        'mfa_verified_at'
+      )
       .where({ id: Number(id) })
       .first();
+  }
+
+  /**
+   * Actualizar perfil del usuario
+   */
+  static async updateProfile(id, { nombre, email, telefono, ruc, empresaNombre, colegiatura, cargoTitulo, direccionEstudio, pieFirma }) {
+    const updateObj = {};
+    if (nombre !== undefined) updateObj.nombre = String(nombre).trim();
+    if (email !== undefined) updateObj.email = String(email).toLowerCase().trim();
+    if (telefono !== undefined) updateObj.telefono = telefono ? String(telefono).trim() : null;
+    if (ruc !== undefined) updateObj.ruc = ruc ? String(ruc).trim() : null;
+    if (empresaNombre !== undefined) updateObj.empresa_nombre = empresaNombre ? String(empresaNombre).trim() : null;
+    if (colegiatura !== undefined) updateObj.colegiatura = colegiatura ? String(colegiatura).trim() : null;
+    if (cargoTitulo !== undefined) updateObj.cargo_titulo = cargoTitulo ? String(cargoTitulo).trim() : null;
+    if (direccionEstudio !== undefined) updateObj.direccion_estudio = direccionEstudio ? String(direccionEstudio).trim() : null;
+    if (pieFirma !== undefined) updateObj.pie_firma = pieFirma ? String(pieFirma).trim() : null;
+
+    if (Object.keys(updateObj).length > 0) {
+      await db('usuarios').where({ id: Number(id) }).update(updateObj);
+    }
+    return this.findById(id);
+  }
+
+  /**
+   * Actualizar contraseña de un usuario
+   */
+  static async updatePassword(id, passwordHash) {
+    await db('usuarios').where({ id: Number(id) }).update({
+      password_hash: passwordHash
+    });
   }
 
   /**

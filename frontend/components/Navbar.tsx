@@ -11,7 +11,7 @@ import {
   Building2,
   GitPullRequest,
   CheckCircle2,
-  ShieldCheck,
+  Building,
   Menu,
   X
 } from "lucide-react";
@@ -48,7 +48,7 @@ export function Navbar() {
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="h-9 w-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs">
-              <ShieldCheck className="h-5 w-5" />
+              <Building className="h-5 w-5" />
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-lg leading-tight tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
@@ -133,14 +133,18 @@ export function Navbar() {
 
           {user && (
             <div className="flex items-center gap-3 pl-2 border-l border-slate-200 dark:border-slate-800">
-              <div className="hidden sm:flex flex-col text-right">
+              <Link
+                href={isContador ? "/contador/perfil" : "/portal-cliente"}
+                className="hidden sm:flex flex-col text-right hover:opacity-80 transition-opacity"
+                title={isContador ? "Ver mi perfil de contador" : "Mi Portal MYPE"}
+              >
                 <span className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate max-w-[170px]">
                   {user.nombre}
                 </span>
                 <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                  {isContador ? "Contador Público" : `MYPE (${user.ruc || ""})`}
+                  {isContador ? (user.colegiatura ? `${user.colegiatura} • Perfil` : "Contador Público") : `MYPE (${user.ruc || ""})`}
                 </span>
-              </div>
+              </Link>
               <Button
                 variant="outline"
                 size="sm"

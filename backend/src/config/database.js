@@ -50,6 +50,10 @@ export async function initDatabase() {
       table.string('ruc').nullable();
       table.string('empresa_nombre').nullable();
       table.string('telefono').nullable();
+      table.string('colegiatura').nullable();
+      table.string('cargo_titulo').nullable();
+      table.string('direccion_estudio').nullable();
+      table.text('pie_firma').nullable();
       table.boolean('activo').defaultTo(true);
       table.boolean('mfa_enabled').defaultTo(false);
       table.string('mfa_secret').nullable();
@@ -65,6 +69,16 @@ export async function initDatabase() {
         table.string('mfa_secret').nullable();
         table.text('mfa_recovery_codes').nullable();
         table.timestamp('mfa_verified_at').nullable();
+      });
+    }
+
+    const hasColegiatura = await db.schema.hasColumn('usuarios', 'colegiatura');
+    if (!hasColegiatura) {
+      await db.schema.table('usuarios', (table) => {
+        table.string('colegiatura').nullable();
+        table.string('cargo_titulo').nullable();
+        table.string('direccion_estudio').nullable();
+        table.text('pie_firma').nullable();
       });
     }
   }

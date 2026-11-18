@@ -19,7 +19,12 @@ export class AuthView {
         rol: user.rol,
         ruc: user.ruc || null,
         empresaNombre: user.empresa_nombre || null,
-        telefono: user.telefono || null
+        telefono: user.telefono || null,
+        colegiatura: user.colegiatura || null,
+        cargoTitulo: user.cargo_titulo || null,
+        direccionEstudio: user.direccion_estudio || null,
+        pieFirma: user.pie_firma || null,
+        mfa_enabled: Boolean(user.mfa_enabled)
       }
     });
   }
@@ -34,9 +39,14 @@ export class AuthView {
         nombre: user.nombre,
         email: user.email,
         rol: user.rol,
-        ruc: user.ruc,
-        empresaNombre: user.empresa_nombre,
-        telefono: user.telefono
+        ruc: user.ruc || null,
+        empresaNombre: user.empresa_nombre || null,
+        telefono: user.telefono || null,
+        colegiatura: user.colegiatura || null,
+        cargoTitulo: user.cargo_titulo || null,
+        direccionEstudio: user.direccion_estudio || null,
+        pieFirma: user.pie_firma || null,
+        mfa_enabled: Boolean(user.mfa_enabled)
       }
     });
   }

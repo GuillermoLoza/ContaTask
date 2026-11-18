@@ -8,6 +8,8 @@ import {
   disableMfa,
   regenerateRecoveryCodes,
   getCurrentUser,
+  updateProfile,
+  changePassword,
   getDemoUsers
 } from '../controllers/auth.controller.js';
 import { authenticateToken } from '../middlewares/auth.middleware.js';
@@ -19,8 +21,10 @@ router.post('/login', login);
 router.post('/login-mfa', loginMfa);
 router.get('/demo-users', getDemoUsers);
 
-// Rutas autenticadas
+// Rutas de perfil autenticado
 router.get('/me', authenticateToken, getCurrentUser);
+router.put('/profile', authenticateToken, updateProfile);
+router.put('/change-password', authenticateToken, changePassword);
 
 // Rutas de gestión de Autenticación Multifactor (MFA / 2FA)
 router.get('/mfa/status', authenticateToken, getMfaStatus);

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   api,
   getSavedUser,
+  setSavedUser,
   Usuario,
   Cliente,
   Transaccion,
@@ -306,6 +307,10 @@ interface ContadorContextType {
   handleSincronizarBuzon: (clienteId?: number) => Promise<void>;
   handleSincronizarBuzonTodos: () => Promise<void>;
   handleMarcarBuzonLeido: (mensajeId: number) => Promise<void>;
+
+  // Perfil del Contador
+  actualizarPerfilUsuario: (datos: Partial<Usuario>) => Promise<Usuario>;
+  recargarPerfil: () => Promise<Usuario | void>;
 }
 
 const ContadorContext = createContext<ContadorContextType | undefined>(undefined);
@@ -661,11 +666,35 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
       await cargarCorreosRecibidos();
       await cargarBuzonSol();
       await cargarCronograma();
+      await recargarPerfil();
     } catch (err) {
       console.error("Error al cargar datos del contador:", err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const recargarPerfil = async () => {
+    try {
+      const res = await api.getCurrentUser();
+      if (res?.usuario) {
+        setUser(res.usuario);
+        setSavedUser(res.usuario);
+        return res.usuario;
+      }
+    } catch (err) {
+      console.warn("Error recargando perfil del usuario:", err);
+    }
+  };
+
+  const actualizarPerfilUsuario = async (datos: Partial<Usuario>) => {
+    const res = await api.updateProfile(datos);
+    if (res?.usuario) {
+      setUser(res.usuario);
+      setSavedUser(res.usuario);
+      return res.usuario;
+    }
+    throw new Error(res?.message || "Error al actualizar perfil");
   };
 
   useEffect(() => {
@@ -1788,7 +1817,11 @@ export function ContadorProvider({ children }: { children: React.ReactNode }) {
         cargarBuzonSol,
         handleSincronizarBuzon,
         handleSincronizarBuzonTodos,
-        handleMarcarBuzonLeido
+        handleMarcarBuzonLeido,
+
+        // Perfil del Contador
+        actualizarPerfilUsuario,
+        recargarPerfil
       }}
     >
       {children}

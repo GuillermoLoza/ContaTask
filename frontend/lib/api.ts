@@ -7,7 +7,15 @@ export interface Usuario {
   rol: "CONTADOR" | "CLIENTE";
   ruc?: string;
   empresaNombre?: string;
+  empresa_nombre?: string;
   telefono?: string;
+  colegiatura?: string;
+  cargoTitulo?: string;
+  cargo_titulo?: string;
+  direccionEstudio?: string;
+  direccion_estudio?: string;
+  pieFirma?: string;
+  pie_firma?: string;
   mfa_enabled?: boolean;
 }
 
@@ -287,7 +295,24 @@ export const api = {
       body: JSON.stringify({ password }),
     }),
 
-  getCurrentUser: () => request("/auth/me"),
+  getCurrentUser: (): Promise<{ usuario: Usuario }> => request("/auth/me"),
+  updateProfile: async (profileData: Partial<Usuario>): Promise<{ message?: string; usuario: Usuario }> => {
+    const data = await request("/auth/profile", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(profileData),
+    });
+    if (data.usuario) {
+      setSavedUser(data.usuario);
+    }
+    return data;
+  },
+  changePassword: (currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> =>
+    request("/auth/change-password", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
   getDemoUsers: () => request("/auth/demo-users"),
 
   // Clientes
