@@ -34,7 +34,8 @@ import {
   AlertTriangle,
   FileText,
   Calculator,
-  UserCog
+  UserCog,
+  Users
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
@@ -328,11 +329,18 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
         active: pathname.startsWith("/contador/sunat"),
       },
       {
-        id: "tributacion",
-        label: "SIRE & PLAME",
+        id: "sire",
+        label: "SIRE SUNAT",
         icon: Calculator,
-        href: "/contador/tributacion",
-        active: pathname.startsWith("/contador/tributacion"),
+        href: "/contador/sire",
+        active: pathname.startsWith("/contador/sire") || pathname.startsWith("/contador/tributacion"),
+      },
+      {
+        id: "plame",
+        label: "Planilla PLAME",
+        icon: Users,
+        href: "/contador/plame",
+        active: pathname.startsWith("/contador/plame"),
       },
       {
         id: "perfil",
