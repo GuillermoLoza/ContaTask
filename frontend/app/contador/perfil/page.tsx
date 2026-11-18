@@ -187,17 +187,15 @@ export default function ContadorPerfilPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
       {/* 1. TARJETA CABECERA DE PERFIL */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-[#131b2e] to-blue-950 text-white border border-slate-800 shadow-xl p-6 sm:p-8">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
+      <div className="rounded-2xl bg-white dark:bg-[#131b2e] text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-800 shadow-md p-6 sm:p-8">
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left">
           {/* Avatar con anillo luminoso */}
-          <div className="relative">
-            <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-2xl ring-4 ring-blue-500/30">
+          <div className="relative shrink-0">
+            <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-md ring-4 ring-blue-500/20">
               <User className="h-10 w-10 sm:h-12 sm:w-12" />
             </div>
             <div
-              className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-slate-900 flex items-center justify-center ${
+              className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center ${
                 mfaStatus?.mfaEnabled ? "bg-emerald-500" : "bg-amber-500"
               }`}
               title={mfaStatus?.mfaEnabled ? "2FA Activo" : "2FA Desactivado"}
@@ -209,37 +207,37 @@ export default function ContadorPerfilPage() {
           {/* Información Principal */}
           <div className="flex-1 space-y-2">
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
                 {user?.nombre || "Lic. Guillermo Lozano"}
               </h1>
-              <Badge className="bg-blue-600 hover:bg-blue-600 text-white font-semibold text-[11px]">
+              <Badge className="bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-semibold text-[11px]">
                 Contador Certificado
               </Badge>
               {colegiatura && (
-                <Badge variant="outline" className="text-blue-300 border-blue-500/40 text-[11px] font-mono">
+                <Badge variant="outline" className="text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 text-[11px] font-mono">
                   {colegiatura}
                 </Badge>
               )}
             </div>
 
-            <p className="text-xs sm:text-sm text-slate-300">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium">
               {cargoTitulo || "Contador Público Colegiado - Especialista Tributario"}
             </p>
 
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs text-slate-400 pt-1">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs text-slate-500 dark:text-slate-400 pt-1">
               <span className="flex items-center gap-1.5">
-                <Mail className="h-3.5 w-3.5 text-blue-400" />
+                <Mail className="h-3.5 w-3.5 text-blue-500" />
                 {user?.email || "contador@contasync.pe"}
               </span>
               {telefono && (
                 <span className="flex items-center gap-1.5">
-                  <Phone className="h-3.5 w-3.5 text-emerald-400" />
+                  <Phone className="h-3.5 w-3.5 text-emerald-500" />
                   {telefono}
                 </span>
               )}
               {empresaNombre && (
                 <span className="flex items-center gap-1.5">
-                  <Building2 className="h-3.5 w-3.5 text-indigo-400" />
+                  <Building2 className="h-3.5 w-3.5 text-indigo-500" />
                   {empresaNombre}
                 </span>
               )}
@@ -251,7 +249,7 @@ export default function ContadorPerfilPage() {
             <Button
               type="button"
               onClick={() => setMfaModalOpen(true)}
-              className="text-xs gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm font-semibold"
+              className="text-xs gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs font-semibold"
             >
               <ShieldCheck className="h-4 w-4" />
               <span>{mfaStatus?.mfaEnabled ? "Gestionar 2FA" : "Activar 2FA"}</span>
@@ -260,24 +258,24 @@ export default function ContadorPerfilPage() {
         </div>
 
         {/* Mini métricas del contador */}
-        <div className="grid grid-cols-3 gap-3 mt-6 pt-6 border-t border-slate-800/80 text-center">
-          <div className="p-2 rounded-xl bg-slate-900/50 border border-slate-800">
-            <span className="text-lg sm:text-xl font-bold text-white">{clientes?.length || 0}</span>
-            <p className="text-[10px] sm:text-[11px] text-slate-400">Clientes Asignados</p>
+        <div className="grid grid-cols-3 gap-3 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">
+          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/80">
+            <span className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">{clientes?.length || 0}</span>
+            <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">Clientes Asignados</p>
           </div>
-          <div className="p-2 rounded-xl bg-slate-900/50 border border-slate-800">
-            <span className="text-lg sm:text-xl font-bold text-blue-400">{transacciones?.length || 0}</span>
-            <p className="text-[10px] sm:text-[11px] text-slate-400">Documentos Totales</p>
+          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/80">
+            <span className="text-lg sm:text-xl font-bold text-blue-600 dark:text-blue-400">{transacciones?.length || 0}</span>
+            <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">Documentos Totales</p>
           </div>
-          <div className="p-2 rounded-xl bg-slate-900/50 border border-slate-800">
+          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/80">
             <span
               className={`text-lg sm:text-xl font-bold ${
-                mfaStatus?.mfaEnabled ? "text-emerald-400" : "text-amber-400"
+                mfaStatus?.mfaEnabled ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
               }`}
             >
               {mfaStatus?.mfaEnabled ? "Protegido" : "Básico"}
             </span>
-            <p className="text-[10px] sm:text-[11px] text-slate-400">Nivel de Seguridad</p>
+            <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">Nivel de Seguridad</p>
           </div>
         </div>
       </div>
